@@ -1,6 +1,35 @@
 #!/bin/sh
 set -u
 
+# Script này chỉ được KWin gọi sau khi Wayland server đã khởi động. Từ thời
+# điểm này Windra Shell và các ứng dụng Qt mới được ép chạy như Wayland client.
+export QT_QPA_PLATFORM=wayland
+unset KWIN_FORCE_OWN_QPA
+unset QT_NO_XDG_DESKTOP_PORTAL
+
+# Giữ một log cực nhẹ trong runtime dir để chẩn đoán màn hình đen từ TTY mà
+# không cần sửa image. Không ghi secret hay biến môi trường đầy đủ.
+runtime_dir="${XDG_RUNTIME_DIR:-/tmp}"
+log_file="$runtime_dir/windra-session.log"
+{
+  echo "Windra session start: $(date -Iseconds 2>/dev/null || date)"
+  echo "WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-<unset>}"
+  echo "QT_QPA_PLATFORM=${QT_QPA_PLATFORM:-<unset>}"
+  echo "XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR:-<unset>}"
+} >>"$log_file" 2>/dev/null || true
+
+# Nếu KWin đã gọi session nhưng không truyền Wayland socket, shell chắc chắn
+# không thể render. Thất bại rõ ràng thay vì để người dùng chỉ thấy màn hình đen.
+if [ -z "${WAYLAND_DISPLAY:-}" ]; then
+  echo "Windra: KWin did not provide WAYLAND_DISPLAY" >>"$log_file" 2>/dev/null || true
+  exit 78
+fi
+
+if [ -n "${XDG_RUNTIME_DIR:-}" ] && [ ! -S "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; then
+  echo "Windra: Wayland socket missing: $XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" >>"$log_file" 2>/dev/null || true
+  exit 78
+fi
+
 # Bộ gõ cần cùng session bus và môi trường Wayland với ứng dụng.
 fcitx5 -d >/dev/null 2>&1 || true
 
@@ -15,4 +44,6 @@ do
   fi
 done
 
-exec /usr/bin/windra-shell
+# Ghi stderr/stdout của shell vào cùng log. Khi shell crash/QML lỗi, Ctrl+Alt+F2
+# rồi `cat "$XDG_RUNTIME_DIR/windra-session.log"` sẽ cho nguyên nhân thực.
+exec /usr/bin/windra-shell >>"$log_file" 2>&1
