@@ -14,11 +14,11 @@ Item {
     property bool accentTile: false
     signal clicked()
 
-    width: orb ? 58 : 48
-    height: 56
+    width: root.orb ? 46 : 42
+    height: 46
     opacity: 0
-    scale: reduceMotion ? 1.0 : 0.92
-    transform: Translate { id: introTranslate; y: reduceMotion ? 0 : 9 }
+    scale: reduceMotion ? 1.0 : 0.97
+    transform: Translate { id: introTranslate; y: reduceMotion ? 0 : 6 }
 
     function playIntro() { intro.start() }
 
@@ -35,48 +35,38 @@ Item {
 
     Rectangle {
         id: tile
-        width: root.orb ? 54 : 46
-        height: root.orb ? 54 : 46
+        width: 40
+        height: 40
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        radius: root.orb ? width / 2 : 11
-        color: root.orb
-            ? "#c91b3138"
-            : (root.accentTile ? "#6d157fca" : root.tileColor)
-        border.width: root.orb || root.accentTile ? 1 : 0
-        border.color: root.orb ? Theme.chromeBorder : "#6629b8ff"
-        opacity: mouse.containsMouse ? 1.0 : 0.92
-        scale: mouse.pressed ? 0.94 : mouse.containsMouse ? 1.055 : 1.0
+        radius: root.orb ? 20 : 10
+        color: mouse.containsMouse
+            ? "#19ffffff"
+            : (root.orb ? "#111ffffff" : root.tileColor)
+        border.width: root.orb ? 1 : 0
+        border.color: root.orb ? "#2effffff" : "transparent"
+        scale: mouse.pressed ? Theme.pressScale : (mouse.containsMouse ? Theme.hoverScale : 1.0)
 
-        Behavior on scale { NumberAnimation { duration: Theme.motionFast; easing.type: Easing.OutCubic } }
-        Behavior on opacity { NumberAnimation { duration: Theme.motionFast } }
-
-        Rectangle {
-            visible: root.orb
-            anchors.fill: parent
-            anchors.margins: 4
-            radius: width / 2
-            color: "transparent"
-            border.width: 1
-            border.color: "#529be8ff"
-        }
+        Behavior on color { ColorAnimation { duration: Theme.hoverDuration } }
+        Behavior on scale { NumberAnimation { duration: Theme.hoverDuration; easing.type: Easing.OutCubic } }
 
         Image {
             anchors.centerIn: parent
-            width: root.orb ? parent.width * 0.76 : parent.width * 0.82
-            height: root.orb ? parent.height * 0.76 : parent.height * 0.82
+            width: root.orb ? 30 : 29
+            height: root.orb ? 30 : 29
             source: root.iconSource
             fillMode: Image.PreserveAspectFit
             smooth: true
         }
     }
 
+    // Tiny running indicator, deliberately quieter than a glowing app tile.
     Rectangle {
         visible: root.running
-        width: 18
-        height: 3
-        radius: 2
-        color: Theme.chromeGlow
+        width: 12
+        height: 2
+        radius: 1
+        color: Theme.accent
         anchors.horizontalCenter: tile.horizontalCenter
         anchors.bottom: parent.bottom
         opacity: 0.95
