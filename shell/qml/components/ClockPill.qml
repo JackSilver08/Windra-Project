@@ -5,12 +5,8 @@ import "../design/Format.js" as Format
 
 /*!
  * Pill góc dưới phải.
- *
- * Hai vùng click ĐỘC LẬP:
- *   - mũi tên ^  -> popup "Ứng dụng đang chạy / ứng dụng nền";
- *   - vùng giờ   -> popup Calendar.
- *
- * Giờ/ngày lấy từ đồng hồ hệ thống và theo locale khi hệ thống dùng vi_VN.
+ * Hai vùng click độc lập: ^ mở app đang chạy, vùng giờ mở lịch.
+ * Visual mới dùng glass tối + cyan rim giống mockup homepage Windra.
  */
 Rectangle {
     id: root
@@ -24,9 +20,11 @@ Rectangle {
     signal appsClicked()
     signal clockClicked()
 
-    color: "#e7ebe3"
+    color: Theme.chromeGlassStrong
+    border.width: 1
+    border.color: Theme.chromeBorder
     opacity: 0
-    radius: height / 2
+    radius: 18
     transform: Translate { id: clockTranslate; y: root.reduceMotion ? 0 : 34 }
 
     function playIntro() { intro.start() }
@@ -36,7 +34,7 @@ Rectangle {
         PauseAnimation { duration: root.reduceMotion ? 0 : 380 }
         ParallelAnimation {
             NumberAnimation {
-                target: root; property: "opacity"; to: 0.90
+                target: root; property: "opacity"; to: 0.96
                 duration: root.reduceMotion ? 80 : Theme.motionNormal; easing.type: Easing.OutCubic
             }
             NumberAnimation {
@@ -53,12 +51,24 @@ Rectangle {
         onTriggered: root.now = new Date()
     }
 
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.leftMargin: 16
+        anchors.rightMargin: 16
+        height: 2
+        radius: 1
+        color: Theme.chromeGlow
+        opacity: 0.82
+    }
+
     WindraIconButton {
         id: appsButton
         width: 44
         height: 44
         anchors.left: parent.left
-        anchors.leftMargin: 16
+        anchors.leftMargin: 12
         anchors.verticalCenter: parent.verticalCenter
         backgroundRadius: 22
         reduceMotion: root.reduceMotion
@@ -68,32 +78,40 @@ Rectangle {
             : "Ứng dụng đang chạy"
         onClicked: root.appsClicked()
 
+        Rectangle {
+            anchors.fill: parent
+            radius: width / 2
+            color: "#25ffffff"
+            border.width: 1
+            border.color: "#3cffffff"
+        }
+
         Image {
             anchors.centerIn: parent
             source: "../assets/icons/chevron.svg"
-            width: 26
-            height: 26
+            width: 23
+            height: 23
             fillMode: Image.PreserveAspectFit
             smooth: true
+            opacity: 0.92
         }
 
-        // Chấm nhỏ báo có app đang chạy — không cần mở popup mới biết.
         Rectangle {
             width: 6
             height: 6
             radius: 3
-            color: Theme.accent
+            color: Theme.chromeGlow
             visible: appModel.runningCount > 0
             anchors.right: parent.right
             anchors.top: parent.top
-            anchors.margins: 6
+            anchors.margins: 5
         }
     }
 
     Item {
         id: clockArea
         anchors.left: appsButton.right
-        anchors.leftMargin: 4
+        anchors.leftMargin: 3
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
@@ -101,32 +119,32 @@ Rectangle {
         Rectangle {
             anchors.fill: parent
             anchors.margins: 4
-            radius: height / 2
+            radius: 14
             color: popupController.active === "calendar"
-                ? "#33ffffff"
-                : (clockMouse.containsMouse ? "#26ffffff" : "transparent")
+                ? "#24ffffff"
+                : (clockMouse.containsMouse ? "#18ffffff" : "transparent")
             Behavior on color { ColorAnimation { duration: Theme.hoverDuration } }
         }
 
         Column {
             anchors.right: parent.right
-            anchors.rightMargin: 21
+            anchors.rightMargin: 18
             anchors.verticalCenter: parent.verticalCenter
-            spacing: 0
+            spacing: -1
 
             Text {
                 anchors.right: parent.right
                 text: Qt.formatTime(root.now, Qt.locale().timeFormat(Locale.ShortFormat))
-                font.pixelSize: 18
+                font.pixelSize: 23
                 font.bold: true
-                color: Theme.ink
+                color: Theme.chromeText
             }
             Text {
                 anchors.right: parent.right
                 text: Qt.formatDate(root.now, "d/M/yyyy")
-                font.pixelSize: 16
-                font.bold: true
-                color: Theme.ink
+                font.pixelSize: 13
+                font.bold: false
+                color: Theme.chromeMuted
             }
         }
 
