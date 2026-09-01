@@ -10,6 +10,21 @@ var accentWarm = "#f6b83b"
 var success = "#58a66b"
 var danger = "#df5d5d"
 
+// Homepage chrome: lấy cảm hứng từ mockup Windra mới và logo xanh gió/toàn cầu.
+// Không dùng blur nặng để giữ mục tiêu lightweight; cảm giác kính được tạo bằng
+// alpha, viền sáng và một đường glow mảnh.
+var chromeGlass = "#a61a2627"
+var chromeGlassStrong = "#bd263334"
+var chromeBorder = "#70bfefff"
+var chromeGlow = "#29b8ff"
+var chromeGlowSoft = "#5c29b8ff"
+var chromeText = "#f7fbff"
+var chromeMuted = "#c8d6dd"
+var searchGlass = "#b8d6dcde"
+var searchBorder = "#8de7f7ff"
+var brandBlue = "#0f91f5"
+var brandBlueDeep = "#1264ff"
+
 // Bề mặt phụ dùng trong popup (hover, groove slider, chip).
 var hover = "#eef2ef"
 var hoverStrong = "#e4eae6"
@@ -52,5 +67,5 @@ function slideFor(reduceMotion) {
 function batteryColor(level) {
     if (level === "critical") return danger
     if (level === "low") return accentWarm
-    return ink
+    return chromeText
 }
