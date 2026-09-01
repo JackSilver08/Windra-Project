@@ -3,9 +3,8 @@ import "../controls"
 import "../design/Theme.js" as Theme
 
 /*!
- * Status island góc trên phải.
- * Ba control độc lập: Wi-Fi, Volume, Battery. Visual mới bám mockup Windra:
- * glass compact, viền xanh lạnh và wind motif ở cạnh trái.
+ * Compact status island. Each area keeps its own popup anchor while the visual
+ * treatment stays deliberately quiet so wallpaper and applications remain the focus.
  */
 Item {
     id: root
@@ -21,7 +20,7 @@ Item {
     signal batteryClicked()
 
     opacity: 0
-    transform: Translate { id: statusTranslate; y: root.reduceMotion ? 0 : -54 }
+    transform: Translate { id: statusTranslate; y: root.reduceMotion ? 0 : -30 }
 
     function playIntro() { intro.start() }
 
@@ -39,46 +38,20 @@ Item {
 
     Rectangle {
         anchors.fill: parent
-        radius: 13
-        color: Theme.chromeGlassStrong
+        radius: 16
+        color: Theme.chromeGlass
         border.width: 1
         border.color: Theme.chromeBorder
     }
 
-    Rectangle {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.leftMargin: 18
-        anchors.rightMargin: 18
-        height: 2
-        radius: 1
-        color: Theme.chromeGlow
-        opacity: 0.58
-    }
-
-    Image {
-        source: "../assets/icons/windra-waves.svg"
-        width: 38
-        height: 26
-        anchors.left: parent.left
-        anchors.leftMargin: 13
-        anchors.verticalCenter: parent.verticalCenter
-        fillMode: Image.PreserveAspectFit
-        opacity: 0.72
-    }
-
     Row {
-        anchors.right: parent.right
-        anchors.rightMargin: 12
-        anchors.verticalCenter: parent.verticalCenter
-        spacing: 4
+        anchors.centerIn: parent
+        spacing: 3
 
         WindraIconButton {
             id: wifiButton
             width: 38
             height: 38
-            anchors.verticalCenter: parent.verticalCenter
             reduceMotion: root.reduceMotion
             active: popupController.active === "wifi"
             tooltip: networkService.tooltipText
@@ -86,20 +59,19 @@ Item {
 
             WifiIcon {
                 anchors.centerIn: parent
-                width: 25
-                height: 25
+                width: 22
+                height: 22
                 level: networkService.level
                 strokeColor: Theme.chromeText
             }
         }
 
-        Rectangle { width: 1; height: 24; color: "#33ffffff"; anchors.verticalCenter: parent.verticalCenter }
+        Rectangle { width: 1; height: 18; color: "#24ffffff"; anchors.verticalCenter: parent.verticalCenter }
 
         WindraIconButton {
             id: volumeButton
             width: 38
             height: 38
-            anchors.verticalCenter: parent.verticalCenter
             reduceMotion: root.reduceMotion
             active: popupController.active === "volume"
             tooltip: audioService.tooltipText
@@ -109,21 +81,20 @@ Item {
 
             VolumeIcon {
                 anchors.centerIn: parent
-                width: 25
-                height: 25
+                width: 22
+                height: 22
                 level: audioService.level
                 unavailable: !audioService.available
                 strokeColor: audioService.muted ? Theme.danger : Theme.chromeText
             }
         }
 
-        Rectangle { width: 1; height: 24; color: "#33ffffff"; anchors.verticalCenter: parent.verticalCenter }
+        Rectangle { width: 1; height: 18; color: "#24ffffff"; anchors.verticalCenter: parent.verticalCenter }
 
         WindraIconButton {
             id: batteryButton
-            width: batteryRow.width + 12
+            width: batteryRow.width + 14
             height: 38
-            anchors.verticalCenter: parent.verticalCenter
             reduceMotion: root.reduceMotion
             active: popupController.active === "battery"
             tooltip: batteryService.tooltipText
@@ -136,8 +107,8 @@ Item {
 
                 BatteryIcon {
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 32
-                    height: 18
+                    width: 28
+                    height: 16
                     percent: batteryService.percent
                     level: batteryService.level
                     charging: batteryService.charging
@@ -151,7 +122,7 @@ Item {
                     visible: batteryService.available
                     text: batteryService.percent + "%"
                     font.pixelSize: 12
-                    font.bold: true
+                    font.weight: Font.Medium
                     color: Theme.batteryChromeColor(batteryService.level)
                 }
             }
