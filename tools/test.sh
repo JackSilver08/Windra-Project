@@ -4,6 +4,26 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="${WINDRA_TEST_BUILD_DIR:-$ROOT/build-tests}"
 
+require_tool() {
+  local tool="$1"
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    echo "[Windra] Thiếu '$tool' trong môi trường Bash hiện tại." >&2
+    if [[ "${OS:-}" == "Windows_NT" || "$(uname -s 2>/dev/null || true)" =~ MINGW|MSYS|CYGWIN ]]; then
+      echo "[Windra] Bạn đang chạy Bash của Windows/Git Bash, không phải Debian WSL." >&2
+      echo "[Windra] Từ PowerShell hãy dùng: .\\tools\\test.ps1" >&2
+    else
+      echo "[Windra] Trên Debian/Ubuntu hãy chạy: ./tools/bootstrap-debian.sh" >&2
+    fi
+    exit 127
+  fi
+}
+
+require_tool cmake
+require_tool ninja
+require_tool ctest
+require_tool go
+
+
 echo "== Windra: Qt unit tests =="
 cmake -S "$ROOT" -B "$BUILD_DIR" -G Ninja \
   -DBUILD_TESTING=ON \
