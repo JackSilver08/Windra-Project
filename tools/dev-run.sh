@@ -3,6 +3,24 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD="$ROOT/build"
 
+require_tool() {
+  local tool="$1"
+  if ! command -v "$tool" >/dev/null 2>&1; then
+    echo "[Windra] Thiếu '$tool' trong môi trường Bash hiện tại." >&2
+    if [[ "${OS:-}" == "Windows_NT" || "$(uname -s 2>/dev/null || true)" =~ MINGW|MSYS|CYGWIN ]]; then
+      echo "[Windra] Bạn đang chạy shell script từ Windows/Git Bash, không phải Debian WSL." >&2
+      echo "[Windra] Từ PowerShell hãy dùng: .\\tools\\dev-run.ps1" >&2
+      echo "[Windra] Wi-Fi mock: .\\tools\\dev-run.ps1 -MockWifi" >&2
+    else
+      echo "[Windra] Trên Debian/Ubuntu hãy chạy: ./tools/bootstrap-debian.sh" >&2
+    fi
+    exit 127
+  fi
+}
+
+require_tool cmake
+require_tool ninja
+
 MOCK_WIFI=0
 for arg in "$@"; do
   case "$arg" in
