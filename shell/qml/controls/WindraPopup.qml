@@ -2,12 +2,8 @@ import QtQuick
 import "../design/Theme.js" as Theme
 
 /*!
- * Bề mặt chuẩn cho mọi system popup của Windra.
- *
- * Lo ba việc mà 5 popup không nên tự viết lại:
- *   - motion: fade + slide 10px, 140-180ms, tôn trọng Reduce Motion;
- *   - định vị theo icon tương ứng, tự kẹp trong màn hình (không hardcode toạ độ);
- *   - visual identity: nền sáng bán trong, bo góc, viền mảnh, bóng rất nhẹ.
+ * Shared surface for Windra system popups.
+ * Keeps one positioning/motion implementation and a quiet, readable visual.
  */
 Item {
     id: root
@@ -15,27 +11,18 @@ Item {
     property bool open: false
     property bool reduceMotion: false
 
-    //! Icon mà popup này thuộc về. Popup canh giữa theo icon và nằm dưới/trên nó.
     property Item anchorItem: null
-    //! "below" = popup nằm dưới anchor (status island); "above" = nằm trên (clock pill).
     property string preferredSide: "below"
-    property int gap: 12
+    property int gap: 10
     property int screenMargin: 14
 
-    //! Popup trượt từ phía nó xuất hiện: dưới thì trượt xuống, trên thì trượt lên.
     readonly property real hiddenOffset: preferredSide === "above"
         ? Theme.slideFor(reduceMotion)
         : -Theme.slideFor(reduceMotion)
 
     property alias radius: surface.radius
     property alias surfaceColor: surface.color
-
-    /*!
-     * Lề nội dung chuẩn. Popup con khai báo nội dung như child bình thường và
-     * dùng `anchors.margins: padding` — không dùng default-property alias vì
-     * nó sẽ nuốt cả những item nền bên trong file này.
-     */
-    readonly property int padding: 20
+    readonly property int padding: 18
 
     implicitWidth: 320
     implicitHeight: 200
@@ -63,7 +50,6 @@ Item {
         }
     }
 
-    // --- định vị ------------------------------------------------------------
     onOpenChanged: if (open) reposition()
     onWidthChanged: reposition()
     onHeightChanged: reposition()
@@ -76,11 +62,6 @@ Item {
         function onHeightChanged() { root.reposition() }
     }
 
-    /*!
-     * Canh popup theo anchorItem, ưu tiên `preferredSide`, lật sang phía kia nếu
-     * tràn, rồi kẹp trong vùng cha. Hoạt động ở mọi độ phân giải và HiDPI vì mọi
-     * thứ đều tính từ kích thước thật lúc chạy.
-     */
     function reposition() {
         if (!parent)
             return
@@ -107,12 +88,10 @@ Item {
         y = Math.max(screenMargin, Math.min(targetY, parent.height - height - screenMargin))
     }
 
-    // --- bề mặt -------------------------------------------------------------
-    // Bóng giả bằng một rectangle lệch nhẹ: rẻ hơn nhiều so với blur shader.
     Rectangle {
         anchors.fill: surface
-        anchors.topMargin: 3
-        anchors.bottomMargin: -3
+        anchors.topMargin: 2
+        anchors.bottomMargin: -2
         radius: surface.radius
         color: Theme.popupShadow
     }
