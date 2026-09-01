@@ -6,24 +6,34 @@ param(
 $ErrorActionPreference = "Stop"
 
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
-$escapedRoot = $root.Replace("'", "'\"'\"'")
-$mockArg = if ($MockWifi) { "--mock-wifi" } else { "" }
 
-Write-Host "[Windra] Build/chạy shell trong WSL distro: $Distro"
-Write-Host "[Windra] Source Windows: $root"
+Write-Host "[Windra] Building/running shell in WSL distro: $Distro"
+Write-Host "[Windra] Windows source: $root"
 
-$command = @"
+$linuxRoot = (& wsl.exe -d $Distro -- wslpath -a -u $root).Trim()
+if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($linuxRoot)) {
+    throw "Windra could not convert the project path for WSL distro '$Distro'."
+}
+
+Write-Host "[Windra] WSL source: $linuxRoot"
+
+$linuxArgs = @()
+if ($MockWifi) {
+    $linuxArgs += "--mock-wifi"
+}
+
+$command = @'
 set -e
-ROOT=`$(wslpath -u '$escapedRoot')
-cd "`$ROOT"
+cd "$1"
+shift
 if ! command -v cmake >/dev/null 2>&1; then
-  echo '[Windra] Thiếu cmake trong WSL. Chạy: ./tools/bootstrap-debian.sh' >&2
+  echo "[Windra] cmake is missing in WSL. Run: ./tools/bootstrap-debian.sh" >&2
   exit 127
 fi
-bash tools/dev-run.sh $mockArg
-"@
+exec bash tools/dev-run.sh "$@"
+'@
 
-wsl.exe -d $Distro -- bash -lc $command
+& wsl.exe -d $Distro -- bash -lc $command bash $linuxRoot @linuxArgs
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
