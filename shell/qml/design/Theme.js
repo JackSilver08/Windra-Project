@@ -5,53 +5,51 @@ var textMuted = "#5c6468"
 var surface = "#f5f7f3"
 var surfaceStrong = "#ffffff"
 var glass = "#dce4e4"
-var accent = "#22a7df"
+var accent = "#4da3ff"
 var accentWarm = "#f6b83b"
 var success = "#58a66b"
 var danger = "#df5d5d"
 
-// Homepage chrome: lấy cảm hứng từ mockup Windra mới và logo xanh gió/toàn cầu.
-// Không dùng blur nặng để giữ mục tiêu lightweight; cảm giác kính được tạo bằng
-// alpha, viền sáng và một đường glow mảnh.
-var chromeGlass = "#a61a2627"
-var chromeGlassStrong = "#bd263334"
-var chromeBorder = "#70bfefff"
-var chromeGlow = "#29b8ff"
-var chromeGlowSoft = "#5c29b8ff"
-var chromeText = "#f7fbff"
-var chromeMuted = "#c8d6dd"
-var searchGlass = "#b8d6dcde"
-var searchBorder = "#8de7f7ff"
-var brandBlue = "#0f91f5"
-var brandBlueDeep = "#1264ff"
+// Windra desktop chrome: calm, compact and readable.
+// No expensive blur/shader is required. Alpha surfaces and a very subtle
+// border provide enough separation from the wallpaper while staying light.
+var chromeGlass = "#c51b232c"
+var chromeGlassStrong = "#d21b232c"
+var chromeBorder = "#2effffff"
+var chromeGlow = "#4da3ff"
+var chromeGlowSoft = "#334da3ff"
+var chromeText = "#f4f7fb"
+var chromeMuted = "#b9c4d0"
+var searchGlass = "#e9f4f6f7"
+var searchBorder = "#42ffffff"
+var brandBlue = "#168cf0"
+var brandBlueDeep = "#1264d8"
 
-// Bề mặt phụ dùng trong popup (hover, groove slider, chip).
+// Secondary surfaces used by system popups and application chrome.
 var hover = "#eef2ef"
 var hoverStrong = "#e4eae6"
 var divider = "#dde3df"
-// Định dạng #AARRGGBB — .pragma library không phụ thuộc QML context.
-var popupSurface = "#f7f6f9f7"
-var popupBorder = "#b2ffffff"
-var popupShadow = "#14000000"
+var popupSurface = "#f5f6f8f7"
+var popupBorder = "#8fffffff"
+var popupShadow = "#19000000"
 
 var radiusSmall = 10
-var radiusMedium = 16
-var radiusLarge = 24
+var radiusMedium = 14
+var radiusLarge = 20
 
-var motionFast = 110
-var motionNormal = 190
-var motionSlow = 280
-var stagger = 42
-var panelOpacity = 0.88
+var motionFast = 100
+var motionNormal = 165
+var motionSlow = 220
+var stagger = 32
+var panelOpacity = 0.92
 
-// --- Windra Motion Design cho system popup ---------------------------------
-// opacity 0 -> 1, translate 6-12px -> 0, 140-180ms. Không blur/particle/bounce.
-var popupDuration = 160
-var popupSlide = 10
-var popupFadeReduced = 90
-var hoverDuration = 120
-var hoverScale = 1.04
-var pressScale = 0.965
+// Motion stays restrained: a small fade/translate is enough for spatial cue.
+var popupDuration = 150
+var popupSlide = 8
+var popupFadeReduced = 80
+var hoverDuration = 100
+var hoverScale = 1.018
+var pressScale = 0.975
 
 function popupMs(reduceMotion) {
     return reduceMotion ? popupFadeReduced : popupDuration
@@ -61,14 +59,12 @@ function slideFor(reduceMotion) {
     return reduceMotion ? 0 : popupSlide
 }
 
-// Màu pin cho panel sáng / nội dung thông thường.
 function batteryColor(level) {
     if (level === "critical") return danger
     if (level === "low") return accentWarm
     return ink
 }
 
-// Màu pin riêng cho chrome tối của homepage.
 function batteryChromeColor(level) {
     if (level === "critical") return danger
     if (level === "low") return accentWarm
