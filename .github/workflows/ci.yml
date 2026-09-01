@@ -51,6 +51,33 @@ jobs:
       - name: Shell syntax checks
         run: find tools -type f -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
 
+  powershell-launchers:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse PowerShell launchers
+        shell: pwsh
+        run: |
+          $failed = $false
+          Get-ChildItem tools -Filter '*.ps1' | ForEach-Object {
+            $tokens = $null
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              $_.FullName,
+              [ref]$tokens,
+              [ref]$errors
+            ) | Out-Null
+
+            if ($errors.Count -gt 0) {
+              $failed = $true
+              Write-Error "PowerShell parse errors in $($_.Name): $($errors -join '; ')"
+            }
+          }
+          if ($failed) { exit 1 }
+
   shell-smoke:
     runs-on: ubuntu-latest
     container: debian:13
@@ -103,7 +130,7 @@ jobs:
           code=$?
           set -e
 
-          # 124 = timeout sau 5 giây, nghĩa là event loop vẫn sống và shell không crash.
+          # 124 = timeout after 5 seconds, meaning the event loop stayed alive.
           if [ "$code" -ne 0 ] && [ "$code" -ne 124 ]; then
             echo "Windra Shell headless smoke test failed with exit code $code" >&2
             exit "$code"
