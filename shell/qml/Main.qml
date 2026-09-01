@@ -13,11 +13,8 @@ Window {
     title: "Windra Shell · 0.2 Desktop Alpha"
     color: "#10181b"
 
-    /*
-     * Reduce Motion đến từ Windra Settings (~/.config/Windra/windra.ini) và có
-     * hiệu lực ngay nhờ file watcher trong WindraSettings — không cần restart shell.
-     */
     readonly property bool reduceMotion: windraSettings.effectiveReduceMotion
+    readonly property int edgeGap: Math.max(18, Math.round(Math.min(width, height) * 0.032))
 
     function launch(appId) {
         popupController.close()
@@ -32,16 +29,18 @@ Window {
         cache: true
     }
 
-    // Very light shade keeps white/glass surfaces readable without expensive blur.
-    Rectangle { anchors.fill: parent; color: "#071014"; opacity: 0.025 }
+    // Chỉ phủ một lớp rất nhẹ để chrome kính đọc được trên cả vùng trời lẫn cỏ.
+    Rectangle { anchors.fill: parent; color: "#061216"; opacity: 0.035 }
 
     StatusIsland {
         id: statusIsland
         z: 10
         anchors.top: parent.top
         anchors.right: parent.right
-        width: Math.max(300, parent.width * 0.2)
-        height: Math.max(60, parent.height * 0.073)
+        anchors.topMargin: root.edgeGap * 0.72
+        anchors.rightMargin: root.edgeGap * 0.72
+        width: 276
+        height: 54
         reduceMotion: root.reduceMotion
         onWifiClicked: popupController.toggle("wifi")
         onVolumeClicked: popupController.toggle("volume")
@@ -53,8 +52,10 @@ Window {
         z: 10
         anchors.left: parent.left
         anchors.bottom: parent.bottom
-        width: Math.min(parent.width * 0.56, 835)
-        height: Math.max(74, parent.height * 0.082)
+        anchors.leftMargin: root.edgeGap
+        anchors.bottomMargin: root.edgeGap * 0.72
+        width: Math.min(Math.max(690, parent.width * 0.405), 790)
+        height: 72
         reduceMotion: root.reduceMotion
         onPowerRequested: popupController.toggle("power")
         onLauncherRequested: {
@@ -74,10 +75,10 @@ Window {
         z: 10
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.rightMargin: 28
-        anchors.bottomMargin: 14
-        width: 225
-        height: 66
+        anchors.rightMargin: root.edgeGap
+        anchors.bottomMargin: root.edgeGap * 0.72
+        width: 222
+        height: 76
         reduceMotion: root.reduceMotion
         onAppsClicked: popupController.toggle("apps")
         onClockClicked: popupController.toggle("calendar")
@@ -90,8 +91,6 @@ Window {
         visible: popupController.anyOpen
         onClicked: popupController.close()
     }
-
-    // --- system popups: mỗi cái neo vào đúng control của nó ------------------
 
     WifiPopup {
         id: wifiPopup
@@ -138,15 +137,13 @@ Window {
         preferredSide: "above"
     }
 
-    // --- shell panels -------------------------------------------------------
-
     LauncherPanel {
         id: launcher
         z: 30
         anchors.left: parent.left
-        anchors.leftMargin: 28
+        anchors.leftMargin: root.edgeGap
         anchors.bottom: dock.top
-        anchors.bottomMargin: 18
+        anchors.bottomMargin: 14
         open: popupController.active === "launcher"
         reduceMotion: root.reduceMotion
         onAppRequested: appId => root.launch(appId)
@@ -161,7 +158,7 @@ Window {
         id: powerMenu
         z: 30
         anchors.left: parent.left
-        anchors.leftMargin: 18
+        anchors.leftMargin: root.edgeGap
         anchors.bottom: dock.top
         anchors.bottomMargin: 14
         open: popupController.active === "power"
@@ -178,7 +175,7 @@ Window {
         z: 40
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 102
+        anchors.bottomMargin: 110
         reduceMotion: root.reduceMotion
     }
 
@@ -199,8 +196,8 @@ Window {
         anchors.top: parent.top
         anchors.margins: 14
         color: "white"
-        opacity: 0.74
-        font.pixelSize: 12
+        opacity: 0.58
+        font.pixelSize: 11
         z: 11
     }
 
