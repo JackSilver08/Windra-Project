@@ -13,6 +13,9 @@ option(WINDRA_BUILD_FILES "Build Windra Files" ON)
 option(WINDRA_BUILD_CALC "Build Windra Calc" ON)
 option(WINDRA_BUILD_NOTES "Build Windra Notes" ON)
 
+include(CTest)
+option(WINDRA_BUILD_TESTS "Build Windra unit tests" ${BUILD_TESTING})
+
 # Thư viện dùng chung giữa shell và các app (hiện tại: appearance settings).
 add_subdirectory(common)
 
@@ -30,4 +33,8 @@ if(WINDRA_BUILD_CALC)
 endif()
 if(WINDRA_BUILD_NOTES)
     add_subdirectory(apps/notes)
+endif()
+
+if(BUILD_TESTING AND WINDRA_BUILD_TESTS)
+    add_subdirectory(tests)
 endif()
