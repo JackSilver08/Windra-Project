@@ -4,11 +4,10 @@ import "../design/Theme.js" as Theme
 import "../design/Format.js" as Format
 
 /*!
- * Pill góc dưới phải.
- * Hai vùng click độc lập: ^ mở app đang chạy, vùng giờ mở lịch.
- * Visual mới dùng glass tối + cyan rim giống mockup homepage Windra.
+ * Bottom-right utility cluster. Running apps and clock are visually separate
+ * cards so the two actions are obvious without adding decoration.
  */
-Rectangle {
+Item {
     id: root
 
     property bool reduceMotion: false
@@ -20,21 +19,17 @@ Rectangle {
     signal appsClicked()
     signal clockClicked()
 
-    color: Theme.chromeGlassStrong
-    border.width: 1
-    border.color: Theme.chromeBorder
     opacity: 0
-    radius: 18
-    transform: Translate { id: clockTranslate; y: root.reduceMotion ? 0 : 34 }
+    transform: Translate { id: clockTranslate; y: root.reduceMotion ? 0 : 24 }
 
     function playIntro() { intro.start() }
 
     SequentialAnimation {
         id: intro
-        PauseAnimation { duration: root.reduceMotion ? 0 : 380 }
+        PauseAnimation { duration: root.reduceMotion ? 0 : 240 }
         ParallelAnimation {
             NumberAnimation {
-                target: root; property: "opacity"; to: 0.96
+                target: root; property: "opacity"; to: 1
                 duration: root.reduceMotion ? 80 : Theme.motionNormal; easing.type: Easing.OutCubic
             }
             NumberAnimation {
@@ -52,115 +47,110 @@ Rectangle {
     }
 
     Rectangle {
+        id: appsCard
+        width: 50
+        height: parent.height
         anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.leftMargin: 16
-        anchors.rightMargin: 16
-        height: 2
-        radius: 1
-        color: Theme.chromeGlow
-        opacity: 0.82
-    }
-
-    WindraIconButton {
-        id: appsButton
-        width: 44
-        height: 44
-        anchors.left: parent.left
-        anchors.leftMargin: 12
         anchors.verticalCenter: parent.verticalCenter
-        backgroundRadius: 22
-        reduceMotion: root.reduceMotion
-        active: popupController.active === "apps"
-        tooltip: appModel.runningCount > 0
-            ? "Ứng dụng đang chạy (" + appModel.runningCount + ")"
-            : "Ứng dụng đang chạy"
-        onClicked: root.appsClicked()
+        radius: 16
+        color: Theme.chromeGlass
+        border.width: 1
+        border.color: Theme.chromeBorder
 
-        Rectangle {
+        WindraIconButton {
+            id: appsButton
             anchors.fill: parent
-            radius: width / 2
-            color: "#25ffffff"
-            border.width: 1
-            border.color: "#3cffffff"
-        }
+            anchors.margins: 4
+            backgroundRadius: 12
+            reduceMotion: root.reduceMotion
+            active: popupController.active === "apps"
+            tooltip: appModel.runningCount > 0
+                ? "Ứng dụng đang chạy (" + appModel.runningCount + ")"
+                : "Ứng dụng đang chạy"
+            onClicked: root.appsClicked()
 
-        Image {
-            anchors.centerIn: parent
-            source: "../assets/icons/chevron.svg"
-            width: 23
-            height: 23
-            fillMode: Image.PreserveAspectFit
-            smooth: true
-            opacity: 0.92
-        }
+            Image {
+                anchors.centerIn: parent
+                source: "../assets/icons/chevron.svg"
+                width: 20
+                height: 20
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                opacity: 0.9
+            }
 
-        Rectangle {
-            width: 6
-            height: 6
-            radius: 3
-            color: Theme.chromeGlow
-            visible: appModel.runningCount > 0
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.margins: 5
+            Rectangle {
+                width: 5
+                height: 5
+                radius: 2.5
+                color: Theme.accent
+                visible: appModel.runningCount > 0
+                anchors.right: parent.right
+                anchors.top: parent.top
+                anchors.margins: 5
+            }
         }
     }
 
-    Item {
-        id: clockArea
-        anchors.left: appsButton.right
-        anchors.leftMargin: 3
+    Rectangle {
+        id: clockCard
+        anchors.left: appsCard.right
+        anchors.leftMargin: 8
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.bottom: parent.bottom
+        radius: 16
+        color: Theme.chromeGlass
+        border.width: 1
+        border.color: Theme.chromeBorder
 
-        Rectangle {
+        Item {
+            id: clockArea
             anchors.fill: parent
-            anchors.margins: 4
-            radius: 14
-            color: popupController.active === "calendar"
-                ? "#24ffffff"
-                : (clockMouse.containsMouse ? "#18ffffff" : "transparent")
-            Behavior on color { ColorAnimation { duration: Theme.hoverDuration } }
-        }
 
-        Column {
-            anchors.right: parent.right
-            anchors.rightMargin: 18
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: -1
-
-            Text {
-                anchors.right: parent.right
-                text: Qt.formatTime(root.now, Qt.locale().timeFormat(Locale.ShortFormat))
-                font.pixelSize: 23
-                font.bold: true
-                color: Theme.chromeText
+            Rectangle {
+                anchors.fill: parent
+                anchors.margins: 4
+                radius: 12
+                color: popupController.active === "calendar"
+                    ? "#1effffff"
+                    : (clockMouse.containsMouse ? "#12ffffff" : "transparent")
+                Behavior on color { ColorAnimation { duration: Theme.hoverDuration } }
             }
-            Text {
-                anchors.right: parent.right
-                text: Qt.formatDate(root.now, "d/M/yyyy")
-                font.pixelSize: 13
-                font.bold: false
-                color: Theme.chromeMuted
+
+            Column {
+                anchors.centerIn: parent
+                spacing: -1
+
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: Qt.formatTime(root.now, Qt.locale().timeFormat(Locale.ShortFormat))
+                    font.pixelSize: 20
+                    font.weight: Font.DemiBold
+                    color: Theme.chromeText
+                }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: Qt.formatDate(root.now, "d/M/yyyy")
+                    font.pixelSize: 11
+                    color: Theme.chromeMuted
+                }
             }
-        }
 
-        MouseArea {
-            id: clockMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: root.clockClicked()
-        }
+            MouseArea {
+                id: clockMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.clockClicked()
+            }
 
-        WindraTooltip {
-            text: Format.longDate(root.now)
-            show: clockMouse.containsMouse && popupController.active !== "calendar"
-            reduceMotion: root.reduceMotion
-            side: "above"
+            WindraTooltip {
+                text: Format.longDate(root.now)
+                show: clockMouse.containsMouse && popupController.active !== "calendar"
+                reduceMotion: root.reduceMotion
+                side: "above"
+            }
         }
     }
 }
