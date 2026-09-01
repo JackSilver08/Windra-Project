@@ -4,11 +4,19 @@ set -eu
 export XDG_SESSION_TYPE=wayland
 export XDG_SESSION_DESKTOP=Windra
 export XDG_CURRENT_DESKTOP=Windra
-export QT_QPA_PLATFORM=wayland
 export XMODIFIERS=@im=fcitx
 export GTK_IM_MODULE=fcitx
 export QT_IM_MODULE=fcitx
 export SDL_IM_MODULE=fcitx
+
+# QUAN TRỌNG: không ép QT_QPA_PLATFORM=wayland trước khi KWin khởi động.
+# KWin Wayland là compositor và tự chọn QPA nội bộ
+# "wayland-org.kde.kwin.qpa" trong tiến trình của chính nó. Ép QPA client ở
+# đây có thể khiến compositor cố kết nối tới một Wayland server chưa tồn tại.
+# Ứng dụng Windra sẽ nhận QT_QPA_PLATFORM=wayland trong windra-session-start,
+# sau khi KWin đã dựng xong Wayland socket.
+unset QT_QPA_PLATFORM
+unset KWIN_FORCE_OWN_QPA
 
 # KWin quản lý Wayland. Script con chỉ khởi động dịch vụ phiên sau khi
 # compositor đã sẵn sàng, rồi giữ Windra Shell làm tiến trình chính.
