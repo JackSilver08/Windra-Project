@@ -29,9 +29,14 @@ struct WifiNetwork {
 
     bool operator==(const WifiNetwork &other) const
     {
-        return ssid == other.ssid && strength == other.strength
-            && security == other.security && secured == other.secured
-            && known == other.known && active == other.active;
+        // `path` là định danh AP/connection cụ thể. Sau một lần scan,
+        // NetworkManager có thể trả object path mới dù SSID và cường độ giữ nguyên.
+        // Nếu bỏ qua path, WifiNetworkModel sẽ tưởng dữ liệu chưa đổi và giữ lại
+        // object path cũ, khiến thao tác kết nối/activate dùng reference đã stale.
+        return ssid == other.ssid && path == other.path
+            && strength == other.strength && security == other.security
+            && secured == other.secured && known == other.known
+            && active == other.active;
     }
 };
 
