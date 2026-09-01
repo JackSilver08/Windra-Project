@@ -142,6 +142,7 @@ Item {
                     level: batteryService.level
                     charging: batteryService.charging
                     unavailable: !batteryService.available
+                    strokeColor: Theme.chromeText
                 }
 
                 Text {
