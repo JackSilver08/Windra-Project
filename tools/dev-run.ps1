@@ -5,35 +5,27 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+. (Join-Path $PSScriptRoot "wsl-path.ps1")
+
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$linuxRoot = ConvertTo-WindraWslPath -WindowsPath $root
+$linuxScript = "$linuxRoot/tools/dev-run.sh"
 
 Write-Host "[Windra] Building/running shell in WSL distro: $Distro"
 Write-Host "[Windra] Windows source: $root"
-
-$linuxRoot = (& wsl.exe -d $Distro -- wslpath -a -u $root).Trim()
-if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($linuxRoot)) {
-    throw "Windra could not convert the project path for WSL distro '$Distro'."
-}
-
 Write-Host "[Windra] WSL source: $linuxRoot"
 
-$linuxArgs = @()
+$wslArgs = @("-d", $Distro, "--", "bash", $linuxScript)
 if ($MockWifi) {
-    $linuxArgs += "--mock-wifi"
+    $wslArgs += "--mock-wifi"
 }
 
-$command = @'
-set -e
-cd "$1"
-shift
-if ! command -v cmake >/dev/null 2>&1; then
-  echo "[Windra] cmake is missing in WSL. Run: ./tools/bootstrap-debian.sh" >&2
-  exit 127
-fi
-exec bash tools/dev-run.sh "$@"
-'@
-
-& wsl.exe -d $Distro -- bash -lc $command bash $linuxRoot @linuxArgs
+# Pass every item as an argument. Do not compose a bash command string here;
+# paths containing spaces must survive the PowerShell -> wsl.exe boundary.
+& wsl.exe @wslArgs
 if ($LASTEXITCODE -ne 0) {
+    if ($LASTEXITCODE -eq 127) {
+        Write-Host "[Windra] A required Linux tool is missing. Run .\tools\bootstrap-wsl.ps1 first." -ForegroundColor Yellow
+    }
     exit $LASTEXITCODE
 }
