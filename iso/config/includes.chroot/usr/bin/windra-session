@@ -9,12 +9,11 @@ export GTK_IM_MODULE=fcitx
 export QT_IM_MODULE=fcitx
 export SDL_IM_MODULE=fcitx
 
-# QUAN TRỌNG: không ép QT_QPA_PLATFORM=wayland trước khi KWin khởi động.
-# KWin Wayland là compositor và tự chọn QPA nội bộ
-# "wayland-org.kde.kwin.qpa" trong tiến trình của chính nó. Ép QPA client ở
-# đây có thể khiến compositor cố kết nối tới một Wayland server chưa tồn tại.
-# Ứng dụng Windra sẽ nhận QT_QPA_PLATFORM=wayland trong windra-session-start,
-# sau khi KWin đã dựng xong Wayland socket.
+# Không ép QPA của ứng dụng trước khi KWin khởi động. KWin Wayland tự chọn QPA
+# nội bộ "wayland-org.kde.kwin.qpa" cho tiến trình compositor, rồi dùng startup
+# environment để mở session con. Giữ QT_QPA_PLATFORM khỏi môi trường đầu vào
+# giúp tách QPA của compositor khỏi QPA Wayland-client của ứng dụng Windra.
+# windra-session-start sẽ đặt QT_QPA_PLATFORM=wayland sau khi socket Wayland sẵn sàng.
 unset QT_QPA_PLATFORM
 unset KWIN_FORCE_OWN_QPA
 
