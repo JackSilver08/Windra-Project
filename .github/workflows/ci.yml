@@ -50,3 +50,61 @@ jobs:
 
       - name: Shell syntax checks
         run: find tools -type f -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
+
+  shell-smoke:
+    runs-on: ubuntu-latest
+    container: debian:13
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Qt/QML build and runtime dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            ca-certificates \
+            cmake \
+            ninja-build \
+            g++ \
+            qt6-base-dev \
+            qt6-declarative-dev \
+            qt6-svg-plugins \
+            qml6-module-qtquick \
+            qml6-module-qtquick-controls \
+            qml6-module-qtquick-layouts \
+            qml6-module-qtquick-window \
+            qml6-module-qtquick-dialogs \
+            coreutils
+
+      - name: Configure Windra Shell
+        run: |
+          cmake -S . -B build-shell -G Ninja \
+            -DBUILD_TESTING=OFF \
+            -DWINDRA_BUILD_TESTS=OFF \
+            -DWINDRA_BUILD_SHELL=ON \
+            -DWINDRA_BUILD_SETTINGS=OFF \
+            -DWINDRA_BUILD_FILES=OFF \
+            -DWINDRA_BUILD_CALC=OFF \
+            -DWINDRA_BUILD_NOTES=OFF
+
+      - name: Build Windra Shell
+        run: cmake --build build-shell --target windra-shell
+
+      - name: Headless QML smoke test
+        shell: bash
+        run: |
+          set +e
+          timeout 5s env \
+            QT_QPA_PLATFORM=offscreen \
+            QT_QUICK_BACKEND=software \
+            WINDRA_WIFI_MOCK=1 \
+            ./build-shell/shell/windra-shell --windowed
+          code=$?
+          set -e
+
+          # 124 = timeout sau 5 giây, nghĩa là event loop vẫn sống và shell không crash.
+          if [ "$code" -ne 0 ] && [ "$code" -ne 124 ]; then
+            echo "Windra Shell headless smoke test failed with exit code $code" >&2
+            exit "$code"
+          fi
