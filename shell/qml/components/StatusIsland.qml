@@ -4,17 +4,14 @@ import "../design/Theme.js" as Theme
 
 /*!
  * Status island góc trên phải.
- *
- * Ba control ĐỘC LẬP: Wi-Fi, Volume, Battery. Mỗi cái có hover, tooltip và popup
- * riêng — không còn một MouseArea phủ toàn bộ mở chung một Quick Settings.
- * Main.qml neo popup vào các anchor được expose ở đây.
+ * Ba control độc lập: Wi-Fi, Volume, Battery. Visual mới bám mockup Windra:
+ * glass compact, viền xanh lạnh và wind motif ở cạnh trái.
  */
 Item {
     id: root
 
     property bool reduceMotion: false
 
-    //! Anchor để Main.qml định vị popup ngay dưới đúng icon tương ứng.
     property alias wifiAnchor: wifiButton
     property alias volumeAnchor: volumeButton
     property alias batteryAnchor: batteryButton
@@ -40,35 +37,47 @@ Item {
         }
     }
 
-    Canvas {
+    Rectangle {
         anchors.fill: parent
-        onWidthChanged: requestPaint()
-        onHeightChanged: requestPaint()
-        Component.onCompleted: requestPaint()
-        onPaint: {
-            const ctx = getContext("2d")
-            ctx.clearRect(0, 0, width, height)
-            ctx.fillStyle = "rgba(205, 217, 225, 0.82)"
-            ctx.beginPath()
-            ctx.moveTo(58, 0)
-            ctx.lineTo(width, 0)
-            ctx.lineTo(width, height)
-            ctx.lineTo(0, height)
-            ctx.closePath()
-            ctx.fill()
-        }
+        radius: 13
+        color: Theme.chromeGlassStrong
+        border.width: 1
+        border.color: Theme.chromeBorder
+    }
+
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.leftMargin: 18
+        anchors.rightMargin: 18
+        height: 2
+        radius: 1
+        color: Theme.chromeGlow
+        opacity: 0.58
+    }
+
+    Image {
+        source: "../assets/icons/windra-waves.svg"
+        width: 38
+        height: 26
+        anchors.left: parent.left
+        anchors.leftMargin: 13
+        anchors.verticalCenter: parent.verticalCenter
+        fillMode: Image.PreserveAspectFit
+        opacity: 0.72
     }
 
     Row {
         anchors.right: parent.right
-        anchors.rightMargin: 22
+        anchors.rightMargin: 12
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 8
+        spacing: 4
 
         WindraIconButton {
             id: wifiButton
-            width: 40
-            height: 40
+            width: 38
+            height: 38
             anchors.verticalCenter: parent.verticalCenter
             reduceMotion: root.reduceMotion
             active: popupController.active === "wifi"
@@ -77,39 +86,43 @@ Item {
 
             WifiIcon {
                 anchors.centerIn: parent
-                width: 27
-                height: 27
+                width: 25
+                height: 25
                 level: networkService.level
+                strokeColor: Theme.chromeText
             }
         }
 
+        Rectangle { width: 1; height: 24; color: "#33ffffff"; anchors.verticalCenter: parent.verticalCenter }
+
         WindraIconButton {
             id: volumeButton
-            width: 40
-            height: 40
+            width: 38
+            height: 38
             anchors.verticalCenter: parent.verticalCenter
             reduceMotion: root.reduceMotion
             active: popupController.active === "volume"
             tooltip: audioService.tooltipText
             acceptedButtons: Qt.LeftButton | Qt.RightButton
             onClicked: root.volumeClicked()
-            // Chuột phải = tắt/bật tiếng nhanh, không cần mở popup.
             onRightClicked: audioService.toggleMute()
 
             VolumeIcon {
                 anchors.centerIn: parent
-                width: 27
-                height: 27
+                width: 25
+                height: 25
                 level: audioService.level
                 unavailable: !audioService.available
-                strokeColor: audioService.muted ? Theme.danger : Theme.ink
+                strokeColor: audioService.muted ? Theme.danger : Theme.chromeText
             }
         }
 
+        Rectangle { width: 1; height: 24; color: "#33ffffff"; anchors.verticalCenter: parent.verticalCenter }
+
         WindraIconButton {
             id: batteryButton
-            width: batteryRow.width + 14
-            height: 40
+            width: batteryRow.width + 12
+            height: 38
             anchors.verticalCenter: parent.verticalCenter
             reduceMotion: root.reduceMotion
             active: popupController.active === "battery"
@@ -119,25 +132,27 @@ Item {
             Row {
                 id: batteryRow
                 anchors.centerIn: parent
-                spacing: 6
+                spacing: 5
 
                 BatteryIcon {
                     anchors.verticalCenter: parent.verticalCenter
-                    width: 36
-                    height: 20
+                    width: 32
+                    height: 18
                     percent: batteryService.percent
                     level: batteryService.level
                     charging: batteryService.charging
                     unavailable: !batteryService.available
+                    strokeColor: Theme.chromeText
+                    fillColor: Theme.batteryChromeColor(batteryService.level)
                 }
 
                 Text {
                     anchors.verticalCenter: parent.verticalCenter
                     visible: batteryService.available
                     text: batteryService.percent + "%"
-                    font.pixelSize: 14
+                    font.pixelSize: 12
                     font.bold: true
-                    color: Theme.batteryColor(batteryService.level)
+                    color: Theme.batteryChromeColor(batteryService.level)
                 }
             }
         }
