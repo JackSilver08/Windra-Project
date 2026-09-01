@@ -14,7 +14,7 @@ Window {
     color: "#10181b"
 
     readonly property bool reduceMotion: windraSettings.effectiveReduceMotion
-    readonly property int edgeGap: Math.max(18, Math.round(Math.min(width, height) * 0.032))
+    readonly property int edgeGap: Math.max(16, Math.round(Math.min(width, height) * 0.026))
 
     function launch(appId) {
         popupController.close()
@@ -29,18 +29,18 @@ Window {
         cache: true
     }
 
-    // Chỉ phủ một lớp rất nhẹ để chrome kính đọc được trên cả vùng trời lẫn cỏ.
-    Rectangle { anchors.fill: parent; color: "#061216"; opacity: 0.035 }
+    // A tiny dark veil stabilizes contrast without changing the wallpaper mood.
+    Rectangle { anchors.fill: parent; color: "#071014"; opacity: 0.02 }
 
     StatusIsland {
         id: statusIsland
         z: 10
         anchors.top: parent.top
         anchors.right: parent.right
-        anchors.topMargin: root.edgeGap * 0.72
-        anchors.rightMargin: root.edgeGap * 0.72
-        width: 276
-        height: 54
+        anchors.topMargin: root.edgeGap
+        anchors.rightMargin: root.edgeGap
+        width: 186
+        height: 46
         reduceMotion: root.reduceMotion
         onWifiClicked: popupController.toggle("wifi")
         onVolumeClicked: popupController.toggle("volume")
@@ -53,9 +53,9 @@ Window {
         anchors.left: parent.left
         anchors.bottom: parent.bottom
         anchors.leftMargin: root.edgeGap
-        anchors.bottomMargin: root.edgeGap * 0.72
-        width: Math.min(Math.max(690, parent.width * 0.405), 790)
-        height: 72
+        anchors.bottomMargin: root.edgeGap
+        width: Math.min(558, Math.max(522, parent.width * 0.42))
+        height: 58
         reduceMotion: root.reduceMotion
         onPowerRequested: popupController.toggle("power")
         onLauncherRequested: {
@@ -76,15 +76,15 @@ Window {
         anchors.right: parent.right
         anchors.bottom: parent.bottom
         anchors.rightMargin: root.edgeGap
-        anchors.bottomMargin: root.edgeGap * 0.72
-        width: 222
-        height: 76
+        anchors.bottomMargin: root.edgeGap
+        width: 196
+        height: 58
         reduceMotion: root.reduceMotion
         onAppsClicked: popupController.toggle("apps")
         onClockClicked: popupController.toggle("calendar")
     }
 
-    // Click ra ngoài đóng popup đang mở — một chỗ duy nhất cho mọi popup.
+    // One backdrop closes whichever popup is currently open.
     MouseArea {
         z: 20
         anchors.fill: parent
@@ -143,7 +143,7 @@ Window {
         anchors.left: parent.left
         anchors.leftMargin: root.edgeGap
         anchors.bottom: dock.top
-        anchors.bottomMargin: 14
+        anchors.bottomMargin: 10
         open: popupController.active === "launcher"
         reduceMotion: root.reduceMotion
         onAppRequested: appId => root.launch(appId)
@@ -160,7 +160,7 @@ Window {
         anchors.left: parent.left
         anchors.leftMargin: root.edgeGap
         anchors.bottom: dock.top
-        anchors.bottomMargin: 14
+        anchors.bottomMargin: 10
         open: popupController.active === "power"
         reduceMotion: root.reduceMotion
         previewMode: windraDevWindowed
@@ -175,7 +175,7 @@ Window {
         z: 40
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 110
+        anchors.bottomMargin: 92
         reduceMotion: root.reduceMotion
     }
 
@@ -187,18 +187,6 @@ Window {
     Connections {
         target: networkService
         function onConnectSucceeded(ssid) { toast.show("Đã kết nối " + ssid) }
-    }
-
-    Label {
-        visible: windraDevWindowed
-        text: "Windra 0.2 Desktop Alpha · development preview"
-        anchors.left: parent.left
-        anchors.top: parent.top
-        anchors.margins: 14
-        color: "white"
-        opacity: 0.58
-        font.pixelSize: 11
-        z: 11
     }
 
     Component.onCompleted: Qt.callLater(function() {
