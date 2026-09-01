@@ -1,0 +1,52 @@
+name: Windra CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    container: debian:13
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            ca-certificates \
+            cmake \
+            ninja-build \
+            g++ \
+            qt6-base-dev \
+            golang-go
+
+      - name: Configure Qt unit tests
+        run: |
+          cmake -S . -B build-tests -G Ninja \
+            -DBUILD_TESTING=ON \
+            -DWINDRA_BUILD_TESTS=ON \
+            -DWINDRA_BUILD_SHELL=OFF \
+            -DWINDRA_BUILD_SETTINGS=OFF \
+            -DWINDRA_BUILD_FILES=OFF \
+            -DWINDRA_BUILD_CALC=OFF \
+            -DWINDRA_BUILD_NOTES=OFF
+
+      - name: Build Qt unit tests
+        run: cmake --build build-tests
+
+      - name: Run Qt unit tests
+        run: ctest --test-dir build-tests --output-on-failure
+
+      - name: Go tests and vet
+        run: |
+          (cd services/health && go test ./... && go vet ./...)
+          (cd services/webapps && go test ./... && go vet ./...)
+
+      - name: Shell syntax checks
+        run: find tools -type f -name '*.sh' -print0 | xargs -0 -r -n1 bash -n
