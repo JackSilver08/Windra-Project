@@ -59,3 +59,13 @@ Boot thử bằng QEMU/KVM:
 Trong WSL2 thường không có `/dev/kvm`, vì vậy QEMU dùng giả lập CPU và khởi động
 chậm hơn đáng kể. Card mạng trong QEMU là Ethernet ảo; danh sách Wi-Fi trống
 không nói lên điều gì về firmware/card Wi-Fi vật lý của laptop.
+
+### Ranh giới KWin / Qt client
+
+Không export `QT_QPA_PLATFORM=wayland` trong wrapper **trước** khi gọi
+`kwin_wayland`. KWin là compositor và dùng QPA nội bộ của chính nó. Chỉ sau khi
+KWin tạo Wayland server, `windra-session-start` mới đặt `QT_QPA_PLATFORM=wayland`
+cho Windra Shell và các ứng dụng Qt.
+
+Nếu ISO boot tới màn hình đen, xem quy trình và lệnh chẩn đoán tại
+[`ISO_BLACK_SCREEN.md`](ISO_BLACK_SCREEN.md).
