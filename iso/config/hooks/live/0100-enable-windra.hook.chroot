@@ -1,0 +1,6 @@
+#!/bin/sh
+set -eu
+
+systemctl enable NetworkManager.service
+systemctl enable sddm.service --force
+systemctl set-default graphical.target

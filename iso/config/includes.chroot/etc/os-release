@@ -1,0 +1,10 @@
+PRETTY_NAME="Windra 0.2 Desktop Alpha"
+NAME="Windra"
+VERSION_ID="0.2"
+VERSION="0.2 Desktop Alpha"
+VERSION_CODENAME="desktop-alpha"
+ID=windra
+ID_LIKE=debian
+HOME_URL="https://example.invalid/windra"
+SUPPORT_URL="https://example.invalid/windra/support"
+BUG_REPORT_URL="https://example.invalid/windra/issues"

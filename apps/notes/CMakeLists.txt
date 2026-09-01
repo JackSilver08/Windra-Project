@@ -1,0 +1,6 @@
+find_package(Qt6 6.5 REQUIRED COMPONENTS Quick Qml)
+qt_add_executable(windra-notes src/main.cpp src/NotesBackend.cpp src/NotesBackend.h)
+qt_add_qml_module(windra-notes URI Windra.Notes VERSION 1.0 QML_FILES qml/Main.qml)
+target_include_directories(windra-notes PRIVATE src)
+target_link_libraries(windra-notes PRIVATE Qt6::Quick Qt6::Qml)
+install(TARGETS windra-notes RUNTIME DESTINATION bin)

@@ -1,0 +1,5 @@
+find_package(Qt6 6.5 REQUIRED COMPONENTS Quick Qml)
+qt_add_executable(windra-settings main.cpp)
+qt_add_qml_module(windra-settings URI Windra.Settings VERSION 1.0 QML_FILES qml/Main.qml)
+target_link_libraries(windra-settings PRIVATE Qt6::Quick Qt6::Qml windra-common)
+install(TARGETS windra-settings RUNTIME DESTINATION bin)

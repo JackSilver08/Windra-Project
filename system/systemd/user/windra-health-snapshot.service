@@ -1,0 +1,6 @@
+[Unit]
+Description=Windra system health snapshot
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/windra-health --json

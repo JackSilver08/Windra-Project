@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Windra
+Comment=Windra lightweight web-first desktop
+Exec=/usr/bin/windra-session
+Type=Application
+DesktopNames=Windra

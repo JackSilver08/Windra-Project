@@ -1,0 +1,33 @@
+cmake_minimum_required(VERSION 3.22)
+project(Windra VERSION 0.2.5 LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+option(WINDRA_BUILD_SHELL "Build Windra Shell" ON)
+option(WINDRA_BUILD_SETTINGS "Build Windra Settings" ON)
+option(WINDRA_BUILD_FILES "Build Windra Files" ON)
+option(WINDRA_BUILD_CALC "Build Windra Calc" ON)
+option(WINDRA_BUILD_NOTES "Build Windra Notes" ON)
+
+# Thư viện dùng chung giữa shell và các app (hiện tại: appearance settings).
+add_subdirectory(common)
+
+if(WINDRA_BUILD_SHELL)
+    add_subdirectory(shell)
+endif()
+if(WINDRA_BUILD_SETTINGS)
+    add_subdirectory(apps/settings)
+endif()
+if(WINDRA_BUILD_FILES)
+    add_subdirectory(apps/files)
+endif()
+if(WINDRA_BUILD_CALC)
+    add_subdirectory(apps/calc)
+endif()
+if(WINDRA_BUILD_NOTES)
+    add_subdirectory(apps/notes)
+endif()

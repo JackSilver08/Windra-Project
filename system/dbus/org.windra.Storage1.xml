@@ -1,0 +1,19 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.windra.Storage1">
+    <method name="ListDevices">
+      <arg name="devicesJson" type="s" direction="out"/>
+    </method>
+    <method name="PlanCreateDrive">
+      <arg name="device" type="s" direction="in"/>
+      <arg name="sizeBytes" type="t" direction="in"/>
+      <arg name="label" type="s" direction="in"/>
+      <arg name="planJson" type="s" direction="out"/>
+    </method>
+    <method name="ApplyPlan">
+      <arg name="planJson" type="s" direction="in"/>
+      <arg name="resultJson" type="s" direction="out"/>
+    </method>
+  </interface>
+</node>

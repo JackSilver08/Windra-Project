@@ -1,0 +1,18 @@
+#!/bin/sh
+set -u
+
+# Bộ gõ cần cùng session bus và môi trường Wayland với ứng dụng.
+fcitx5 -d >/dev/null 2>&1 || true
+
+# Debian có thể đặt agent vào một trong hai đường dẫn này tùy kiến trúc/gói.
+for agent in \
+  /usr/lib/x86_64-linux-gnu/libexec/polkit-kde-authentication-agent-1 \
+  /usr/libexec/polkit-kde-authentication-agent-1
+do
+  if [ -x "$agent" ]; then
+    "$agent" >/dev/null 2>&1 &
+    break
+  fi
+done
+
+exec /usr/bin/windra-shell

@@ -1,0 +1,6 @@
+find_package(Qt6 6.5 REQUIRED COMPONENTS Quick Qml)
+qt_add_executable(windra-files src/main.cpp src/DirectoryModel.cpp src/DirectoryModel.h)
+qt_add_qml_module(windra-files URI Windra.Files VERSION 1.0 QML_FILES qml/Main.qml)
+target_include_directories(windra-files PRIVATE src)
+target_link_libraries(windra-files PRIVATE Qt6::Quick Qt6::Qml)
+install(TARGETS windra-files RUNTIME DESTINATION bin)

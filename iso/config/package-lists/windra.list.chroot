@@ -1,0 +1,85 @@
+# Windra ISO package list
+#
+# Danh sách chỉ dùng một tên gói trên mỗi dòng. live-build không hỗ trợ chú thích
+# ở cuối dòng; lý do của các dependency không hiển nhiên được ghi ở dòng riêng.
+
+# Base desktop
+systemd
+systemd-sysv
+dbus-user-session
+libpam-systemd
+sudo
+# Display manager tự khởi động phiên Windra.
+sddm
+
+# Wayland / compositor
+kwin-wayland
+xwayland
+
+# Qt/QML runtime
+libqt6core6
+libqt6gui6
+libqt6qml6
+libqt6quick6
+libqt6network6
+libqt6dbus6
+# windra-session chạy Qt trên Wayland; mọi icon dock/launcher là SVG.
+qt6-wayland
+qt6-svg-plugins
+qml6-module-qtquick
+qml6-module-qtquick-controls
+qml6-module-qtquick-dialogs
+qml6-module-qtquick-layouts
+qml6-module-qtquick-window
+
+# Human-first system services
+# Wi-Fi: D-Bus, supplicant, regulatory database, rfkill và firmware phổ biến.
+network-manager
+wpasupplicant
+wireless-regdb
+rfkill
+usbutils
+firmware-iwlwifi
+firmware-realtek
+firmware-sof-signed
+pipewire
+pipewire-pulse
+wireplumber
+pulseaudio-utils
+bluez
+udisks2
+# Daemon và agent đều cần để thao tác đặc quyền có hộp thoại xác thực.
+polkitd
+polkit-kde-agent-1
+upower
+power-profiles-daemon
+
+# Web-first
+chromium
+chromium-sandbox
+flatpak
+xdg-desktop-portal
+xdg-desktop-portal-kde
+
+# Hiển thị
+fonts-noto-core
+
+# Gõ tiếng Việt
+fcitx5
+fcitx5-unikey
+fcitx5-frontend-qt6
+fcitx5-frontend-gtk3
+fcitx5-config-qt
+
+# Utilities
+# Terminal Wayland được mở từ launcher Windra.
+foot
+ca-certificates
+curl
+nano
+htop
+zram-tools
+
+# Cố ý KHÔNG cài:
+#   network-manager-gnome  - applet GTK, Windra đã có popup Wi-Fi riêng
+#   pulseaudio             - xung đột với pipewire-pulse

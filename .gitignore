@@ -1,0 +1,45 @@
+# Build
+build/
+build-*/
+out/
+dist/
+
+# Generated Linux filesystem
+extracted/
+rootfs/
+chroot/
+work/
+cache/
+
+# CMake / Ninja
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+.ninja_deps
+.ninja_log
+
+# OS images
+*.iso
+*.img
+*.raw
+*.qcow2
+
+# Compiled binaries
+*.o
+*.obj
+*.a
+*.so
+*.so.*
+*.exe
+
+# Temporary
+*.tmp
+*.log
+*~
+.DS_Store
+Thumbs.db
+
+# IDE local state
+.vscode/
+.idea/

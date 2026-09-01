@@ -1,0 +1,16 @@
+#!/bin/sh
+set -eu
+
+export XDG_SESSION_TYPE=wayland
+export XDG_SESSION_DESKTOP=Windra
+export XDG_CURRENT_DESKTOP=Windra
+export QT_QPA_PLATFORM=wayland
+export XMODIFIERS=@im=fcitx
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export SDL_IM_MODULE=fcitx
+
+# KWin quản lý Wayland. Script con chỉ khởi động dịch vụ phiên sau khi
+# compositor đã sẵn sàng, rồi giữ Windra Shell làm tiến trình chính.
+exec dbus-run-session -- \
+  kwin_wayland --xwayland --exit-with-session /usr/bin/windra-session-start
