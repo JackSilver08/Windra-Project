@@ -143,6 +143,7 @@ Item {
                     charging: batteryService.charging
                     unavailable: !batteryService.available
                     strokeColor: Theme.chromeText
+                    fillColor: Theme.batteryChromeColor(batteryService.level)
                 }
 
                 Text {
@@ -151,7 +152,7 @@ Item {
                     text: batteryService.percent + "%"
                     font.pixelSize: 12
                     font.bold: true
-                    color: Theme.batteryColor(batteryService.level)
+                    color: Theme.batteryChromeColor(batteryService.level)
                 }
             }
         }
