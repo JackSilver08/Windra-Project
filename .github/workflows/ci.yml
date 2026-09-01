@@ -78,6 +78,23 @@ jobs:
           }
           if ($failed) { exit 1 }
 
+      - name: Test Windows to WSL path conversion
+        shell: pwsh
+        run: |
+          . ./tools/wsl-path.ps1
+
+          $cases = @(
+            @{ Windows = 'C:\Windra-Project'; Linux = '/mnt/c/Windra-Project' },
+            @{ Windows = 'D:\Windra Project\repo'; Linux = '/mnt/d/Windra Project/repo' }
+          )
+
+          foreach ($case in $cases) {
+            $actual = ConvertTo-WindraWslPath -WindowsPath $case.Windows
+            if ($actual -ne $case.Linux) {
+              throw "Path conversion failed: $($case.Windows) -> $actual; expected $($case.Linux)"
+            }
+          }
+
   shell-smoke:
     runs-on: ubuntu-latest
     container: debian:13
