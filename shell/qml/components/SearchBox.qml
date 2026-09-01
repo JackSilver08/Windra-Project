@@ -10,10 +10,10 @@ Rectangle {
     signal submitted(string query)
     signal focused()
 
-    color: "#fbfcfb"
+    color: field.activeFocus ? "#dbeff5f6" : Theme.searchGlass
     radius: height / 2
     border.width: field.activeFocus ? 2 : 1
-    border.color: field.activeFocus ? Theme.accent : "#d2d8d9"
+    border.color: field.activeFocus ? Theme.chromeGlow : Theme.searchBorder
     opacity: 0
     scale: reduceMotion ? 1.0 : 0.975
 
@@ -29,16 +29,32 @@ Rectangle {
         }
     }
 
+    Behavior on color { ColorAnimation { duration: Theme.motionFast } }
     Behavior on border.color { ColorAnimation { duration: Theme.motionFast } }
+
+    // Viền sáng mảnh phía dưới tạo cảm giác HUD/game UI nhưng không cần blur.
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.leftMargin: 18
+        anchors.rightMargin: 18
+        height: 1
+        radius: 1
+        color: Theme.chromeGlow
+        opacity: field.activeFocus ? 0.9 : 0.18
+        Behavior on opacity { NumberAnimation { duration: Theme.motionFast } }
+    }
 
     TextField {
         id: field
         anchors.fill: parent
-        anchors.leftMargin: 15
-        anchors.rightMargin: 46
+        anchors.leftMargin: 16
+        anchors.rightMargin: 43
         placeholderText: "Tìm kiếm..."
-        font.pixelSize: 16
-        color: Theme.ink
+        placeholderTextColor: "#64727a"
+        font.pixelSize: 15
+        color: "#172126"
         selectByMouse: true
         background: Item {}
         onAccepted: root.submitted(text.trim())
@@ -47,11 +63,12 @@ Rectangle {
 
     Image {
         source: "../assets/icons/search.svg"
-        width: 25
-        height: 25
+        width: 22
+        height: 22
         anchors.right: parent.right
         anchors.rightMargin: 13
         anchors.verticalCenter: parent.verticalCenter
         fillMode: Image.PreserveAspectFit
+        opacity: 0.88
     }
 }
