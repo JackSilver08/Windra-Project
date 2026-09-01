@@ -83,6 +83,8 @@ qt_add_qml_module(windra-shell
         qml/assets/icons/chevron.svg
         qml/assets/icons/search.svg
         qml/assets/icons/terminal.svg
+        qml/assets/icons/windra-mark.svg
+        qml/assets/icons/windra-waves.svg
 )
 
 target_link_libraries(windra-shell PRIVATE
