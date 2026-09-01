@@ -48,23 +48,28 @@ var panelOpacity = 0.88
 // opacity 0 -> 1, translate 6-12px -> 0, 140-180ms. Không blur/particle/bounce.
 var popupDuration = 160
 var popupSlide = 10
-var popupFadeReduced = 90   // khi Reduce Motion: chỉ fade rất nhanh, không slide
+var popupFadeReduced = 90
 var hoverDuration = 120
 var hoverScale = 1.04
 var pressScale = 0.965
 
-//! Thời lượng thực tế cho popup, tôn trọng Reduce Motion.
 function popupMs(reduceMotion) {
     return reduceMotion ? popupFadeReduced : popupDuration
 }
 
-//! Khoảng trượt thực tế; Reduce Motion bỏ hẳn slide.
 function slideFor(reduceMotion) {
     return reduceMotion ? 0 : popupSlide
 }
 
-//! Màu của icon pin theo mức dung lượng.
+// Màu pin cho panel sáng / nội dung thông thường.
 function batteryColor(level) {
+    if (level === "critical") return danger
+    if (level === "low") return accentWarm
+    return ink
+}
+
+// Màu pin riêng cho chrome tối của homepage.
+function batteryChromeColor(level) {
     if (level === "critical") return danger
     if (level === "low") return accentWarm
     return chromeText
