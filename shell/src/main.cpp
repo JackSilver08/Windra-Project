@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include <QGuiApplication>
+#include <QImage>
 #include <QLocale>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -39,9 +40,6 @@ void printMark(const char *message)
 
 int main(int argc, char *argv[])
 {
-    // Detect this mode without touching QCoreApplication::arguments().
-    // This allows the service-only diagnostic to run without constructing QGuiApplication,
-    // which may initialize the WSL graphics stack before we can print a marker.
     const bool diagnostic = hasArgument(argc, argv, "--startup-diagnostic");
 
     if (diagnostic) {
