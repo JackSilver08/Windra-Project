@@ -17,6 +17,11 @@
 
 int main(int argc, char *argv[])
 {
+    // QCoreApplication::arguments() must only be called after the application
+    // object has been instantiated. Calling it earlier produces:
+    // "Please instantiate the QCoreApplication object first".
+    QGuiApplication app(argc, argv);
+
     const QStringList args = QCoreApplication::arguments();
     const bool diagnostic = args.contains(QStringLiteral("--startup-diagnostic"));
     const bool windowed = args.contains(QStringLiteral("--windowed"));
@@ -29,7 +34,6 @@ int main(int argc, char *argv[])
     };
 
     mark("enter main");
-    QGuiApplication app(argc, argv);
     mark("QGuiApplication constructed");
 
     QGuiApplication::setApplicationName(QStringLiteral("Windra Shell"));
@@ -68,13 +72,12 @@ int main(int argc, char *argv[])
     mark("PopupController OK");
 
     // In diagnostic mode we intentionally stop before loading QML.
-    // This isolates blocking constructor/service initialization from the QML layer.
+    // This isolates service/constructor initialization from the QML layer.
     if (diagnostic) {
         mark("all startup services OK");
         return 0;
     }
 
-    // Popup mở => service tương ứng cập nhật nhanh hơn; đóng => nghỉ.
     QObject::connect(&popups, &PopupController::opened, &app,
                      [&](const QString &name) {
                          audio.setActive(name == QLatin1String("volume"));
