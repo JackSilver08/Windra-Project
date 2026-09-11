@@ -6,6 +6,7 @@ import "../controls"
 
 Item {
     id: root
+
     property bool reduceMotion: false
     property int runningRevision: 0
     signal powerRequested()
@@ -14,7 +15,7 @@ Item {
     signal searchSubmitted(string query)
 
     opacity: 0
-    transform: Translate { id: dockTranslate; x: root.reduceMotion ? 0 : -56 }
+    transform: Translate { id: dockTranslate; x: root.reduceMotion ? 0 : -42 }
 
     function isRunning(id) {
         return root.runningRevision >= 0 && appModel.isRunning(id)
@@ -28,99 +29,139 @@ Item {
     function playIntro() {
         dockIntro.start()
         search.playIntro()
-        windra.playIntro(); web.playIntro(); files.playIntro(); notes.playIntro(); calc.playIntro(); apps.playIntro()
+        windra.playIntro()
+        files.playIntro()
+        web.playIntro()
     }
 
     ParallelAnimation {
         id: dockIntro
-        NumberAnimation { target: root; property: "opacity"; to: 1; duration: root.reduceMotion ? 80 : Theme.motionSlow; easing.type: Easing.OutCubic }
-        NumberAnimation { target: dockTranslate; property: "x"; to: 0; duration: root.reduceMotion ? 80 : Theme.motionSlow; easing.type: Easing.OutCubic }
+        NumberAnimation {
+            target: root
+            property: "opacity"
+            to: 1
+            duration: root.reduceMotion ? 80 : Theme.motionSlow
+            easing.type: Easing.OutCubic
+        }
+        NumberAnimation {
+            target: dockTranslate
+            property: "x"
+            to: 0
+            duration: root.reduceMotion ? 80 : Theme.motionSlow
+            easing.type: Easing.OutCubic
+        }
     }
 
-    // Windra uses a cut silhouette instead of a rounded glass tray.
+    // The dock is one strong geometric strip, not a row of rounded cards.
     WindraCutSurface {
         anchors.fill: parent
-        cut: 16
-        fillColor: "#e8eef3e8"
-        shadowColor: "#62000000"
-        shadowOffsetX: 6
-        shadowOffsetY: 6
+        cut: 22
+        cutTopRight: true
+        cutBottomLeft: false
+        fillColor: "#dbe4ece8"
+        borderColor: "#a7b4bf"
+        borderWidth: 1
+        shadowColor: "#50000000"
+        shadowOffsetX: 7
+        shadowOffsetY: 7
     }
 
-    Row {
+    // Brand mark / launcher.
+    WindraCutSurface {
+        id: windraSurface
+        width: 44
+        height: 44
         anchors.left: parent.left
-        anchors.leftMargin: 12
+        anchors.leftMargin: 14
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 7
+        cut: 12
+        cutTopRight: false
+        cutBottomLeft: false
+        fillColor: "#1f80ff"
+        borderColor: "#ffffff55"
+        borderWidth: 1
+        shadowColor: "#30000000"
+        shadowOffsetX: 3
+        shadowOffsetY: 3
 
-        AppTile {
-            id: windra
-            label: "Windra"
-            iconSource: "../assets/icons/windra-mark.svg"
-            orb: false
-            tileColor: "#1f80ff"
-            accentTile: true
-            reduceMotion: root.reduceMotion
-            introDelay: 70
-            onClicked: root.powerRequested()
-        }
-
-        SearchBox {
-            id: search
-            width: Math.max(190, Math.min(224, root.width * 0.40))
-            height: 40
-            anchors.verticalCenter: parent.verticalCenter
-            reduceMotion: root.reduceMotion
-            introDelay: 100
-            onSubmitted: query => root.searchSubmitted(query)
-            onFocused: root.launcherRequested()
+        Image {
+            anchors.centerIn: parent
+            width: 31
+            height: 31
+            source: "../assets/icons/windra-mark.svg"
+            fillMode: Image.PreserveAspectFit
+            smooth: true
         }
 
-        AppTile {
-            id: web
-            label: "Web"
-            iconSource: "../assets/icons/web.svg"
-            reduceMotion: root.reduceMotion
-            introDelay: 135
-            running: root.isRunning("web")
-            onClicked: root.appRequested("web")
-        }
-        AppTile {
-            id: files
-            label: "Files"
-            iconSource: "../assets/icons/folder.svg"
-            reduceMotion: root.reduceMotion
-            introDelay: 135 + Geo.motionFast / 2
-            running: root.isRunning("files")
-            onClicked: root.appRequested("files")
-        }
-        AppTile {
-            id: notes
-            label: "Notes"
-            iconSource: "../assets/icons/notes.svg"
-            reduceMotion: root.reduceMotion
-            introDelay: 135 + Theme.stagger * 2
-            running: root.isRunning("notes")
-            onClicked: root.appRequested("notes")
-        }
-        AppTile {
-            id: calc
-            label: "Calc"
-            iconSource: "../assets/icons/calc.svg"
-            reduceMotion: root.reduceMotion
-            introDelay: 135 + Theme.stagger * 3
-            running: root.isRunning("calc")
-            onClicked: root.appRequested("calc")
-        }
-        AppTile {
-            id: apps
-            label: "Ứng dụng"
-            iconSource: "../assets/icons/apps.svg"
-            orb: false
-            tileColor: "#162437"
-            reduceMotion: root.reduceMotion
-            introDelay: 135 + Theme.stagger * 4
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
             onClicked: root.launcherRequested()
         }
+
+        scale: windraMousePlaceholder.containsMouse ? 1.03 : 1.0
+    }
+
+    // Invisible hover proxy keeps the launcher tile responsive without adding a rounded background.
+    MouseArea {
+        id: windraMousePlaceholder
+        anchors.fill: windraSurface
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: root.launcherRequested()
+    }
+
+    SearchBox {
+        id: search
+        width: Math.min(270, root.width * 0.39)
+        height: 42
+        anchors.left: windraSurface.right
+        anchors.leftMargin: 16
+        anchors.verticalCenter: parent.verticalCenter
+        reduceMotion: root.reduceMotion
+        introDelay: 80
+        onSubmitted: query => root.searchSubmitted(query)
+        onFocused: root.launcherRequested()
+    }
+
+    // Minimal application shortcuts, matching the approved desktop mockup.
+    AppTile {
+        id: files
+        label: "Files"
+        iconSource: "../assets/icons/folder.svg"
+        width: 48
+        height: 48
+        anchors.left: search.right
+        anchors.leftMargin: 12
+        anchors.verticalCenter: parent.verticalCenter
+        reduceMotion: root.reduceMotion
+        introDelay: 120
+        running: root.isRunning("files")
+        tileColor: "transparent"
+        onClicked: root.appRequested("files")
+    }
+
+    AppTile {
+        id: web
+        label: "Web"
+        iconSource: "../assets/icons/web.svg"
+        width: 48
+        height: 48
+        anchors.left: files.right
+        anchors.leftMargin: 4
+        anchors.verticalCenter: parent.verticalCenter
+        reduceMotion: root.reduceMotion
+        introDelay: 150
+        running: root.isRunning("web")
+        tileColor: "transparent"
+        onClicked: root.appRequested("web")
+    }
+
+    // Keep the launcher accessible from keyboard even though the dock stays visually clean.
+    Rectangle {
+        visible: false
+        anchors.fill: parent
+        color: "transparent"
     }
 }
