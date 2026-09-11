@@ -1,3 +1,4 @@
+#include <QCoreApplication>
 #include <QGuiApplication>
 #include <QLocale>
 #include <QQmlApplicationEngine>
@@ -15,68 +16,90 @@
 #include "ShellBackend.h"
 #include "WindraSettings.h"
 
+namespace {
+
+bool hasArgument(int argc, char *argv[], const char *wanted)
+{
+    for (int i = 1; i < argc; ++i) {
+        if (QString::fromLocal8Bit(argv[i]) == QLatin1String(wanted))
+            return true;
+    }
+    return false;
+}
+
+void printMark(const char *message)
+{
+    std::fprintf(stderr, "[WINDRA-STARTUP] %s\n", message);
+    std::fflush(stderr);
+}
+
+} // namespace
+
 int main(int argc, char *argv[])
 {
-    // QCoreApplication::arguments() must only be called after the application
-    // object has been instantiated. Calling it earlier produces:
-    // "Please instantiate the QCoreApplication object first".
+    // Detect this mode without touching QCoreApplication::arguments().
+    // This allows the diagnostic path to run without constructing QGuiApplication,
+    // which may initialize the WSL graphics stack before we can print a marker.
+    const bool diagnostic = hasArgument(argc, argv, "--startup-diagnostic");
+
+    if (diagnostic) {
+        printMark("enter diagnostic mode");
+        QCoreApplication app(argc, argv);
+        printMark("QCoreApplication constructed");
+
+        const bool windowed = hasArgument(argc, argv, "--windowed");
+
+        printMark("creating WindraSettings");
+        WindraSettings settings;
+        printMark("WindraSettings OK");
+
+        printMark("creating ApplicationModel");
+        ApplicationModel applications(windowed);
+        printMark("ApplicationModel OK");
+
+        printMark("creating ShellBackend");
+        ShellBackend backend(windowed, &applications);
+        printMark("ShellBackend OK");
+
+        printMark("creating BatteryService");
+        BatteryService battery;
+        printMark("BatteryService OK");
+
+        printMark("creating PowerProfilesService");
+        PowerProfilesService powerProfiles;
+        printMark("PowerProfilesService OK");
+
+        printMark("creating AudioService");
+        AudioService audio;
+        printMark("AudioService OK");
+
+        printMark("creating NetworkService");
+        NetworkService network;
+        printMark("NetworkService OK");
+
+        printMark("creating PopupController");
+        PopupController popups;
+        printMark("PopupController OK");
+
+        printMark("all startup services OK");
+        return 0;
+    }
+
     QGuiApplication app(argc, argv);
-
     const QStringList args = QCoreApplication::arguments();
-    const bool diagnostic = args.contains(QStringLiteral("--startup-diagnostic"));
     const bool windowed = args.contains(QStringLiteral("--windowed"));
-
-    auto mark = [diagnostic](const char *message) {
-        if (!diagnostic)
-            return;
-        std::fprintf(stderr, "[WINDRA-STARTUP] %s\n", message);
-        std::fflush(stderr);
-    };
-
-    mark("enter main");
-    mark("QGuiApplication constructed");
 
     QGuiApplication::setApplicationName(QStringLiteral("Windra Shell"));
     QGuiApplication::setOrganizationName(QStringLiteral("Windra"));
 
-    mark("creating WindraSettings");
     WindraSettings settings;
-    mark("WindraSettings OK");
-
-    mark("creating ApplicationModel");
     ApplicationModel applications(windowed);
-    mark("ApplicationModel OK");
-
-    mark("creating ShellBackend");
     ShellBackend backend(windowed, &applications);
-    mark("ShellBackend OK");
-
-    mark("creating BatteryService");
     BatteryService battery;
-    mark("BatteryService OK");
-
-    mark("creating PowerProfilesService");
     PowerProfilesService powerProfiles;
-    mark("PowerProfilesService OK");
-
-    mark("creating AudioService");
     AudioService audio;
-    mark("AudioService OK");
-
-    mark("creating NetworkService");
     NetworkService network;
-    mark("NetworkService OK");
-
-    mark("creating PopupController");
     PopupController popups;
-    mark("PopupController OK");
-
-    // In diagnostic mode we intentionally stop before loading QML.
-    // This isolates service/constructor initialization from the QML layer.
-    if (diagnostic) {
-        mark("all startup services OK");
-        return 0;
-    }
 
     QObject::connect(&popups, &PopupController::opened, &app,
                      [&](const QString &name) {
@@ -88,7 +111,6 @@ int main(int argc, char *argv[])
                          }
                      });
 
-    mark("creating QQmlApplicationEngine");
     QQmlApplicationEngine engine;
     QQmlContext *context = engine.rootContext();
     context->setContextProperty(QStringLiteral("windraDevWindowed"), windowed);
@@ -101,7 +123,6 @@ int main(int argc, char *argv[])
     context->setContextProperty(QStringLiteral("networkService"), &network);
     context->setContextProperty(QStringLiteral("popupController"), &popups);
     context->setContextProperty(QStringLiteral("windraLocaleName"), QLocale::system().name());
-    mark("QQmlApplicationEngine OK");
 
     QObject::connect(&engine,
                      &QQmlApplicationEngine::objectCreationFailed,
@@ -109,8 +130,6 @@ int main(int argc, char *argv[])
                      [] { QCoreApplication::exit(-1); },
                      Qt::QueuedConnection);
 
-    mark("loading Windra.Shell/Main");
     engine.loadFromModule(QStringLiteral("Windra.Shell"), QStringLiteral("Main"));
-    mark("loadFromModule returned");
     return app.exec();
 }
