@@ -43,7 +43,6 @@ Item {
 
     function drawPath(ctx, fill, stroke, strokeWidth) {
         const c = Math.max(0, Math.min(root.cut, Math.min(width, height) / 2))
-
         ctx.beginPath()
         ctx.moveTo(root.cutTopLeft ? c : 0, 0)
         ctx.lineTo(root.cutTopRight ? width - c : width, 0)
@@ -54,15 +53,8 @@ Item {
         ctx.lineTo(0, root.cutBottomLeft ? height - c : height)
         ctx.lineTo(0, root.cutTopLeft ? c : 0)
         ctx.closePath()
-
-        if (root.cutTopLeft) {
-            ctx.moveTo(c, 0)
-            ctx.lineTo(0, c)
-        }
-
         ctx.fillStyle = fill
         ctx.fill()
-
         if (strokeWidth > 0 && stroke !== "transparent") {
             ctx.lineWidth = strokeWidth
             ctx.strokeStyle = stroke
