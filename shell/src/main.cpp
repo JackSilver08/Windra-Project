@@ -6,8 +6,6 @@
 #include <QStringList>
 #include <QQuickWindow>
 #include <QTimer>
-#include <QImage>
-#include <QFileInfo>
 
 #include <cstdio>
 
@@ -42,6 +40,8 @@ void printMark(const char *message)
 int main(int argc, char *argv[])
 {
     // Detect this mode without touching QCoreApplication::arguments().
+    // This allows the service-only diagnostic to run without constructing QGuiApplication,
+    // which may initialize the WSL graphics stack before we can print a marker.
     const bool diagnostic = hasArgument(argc, argv, "--startup-diagnostic");
 
     if (diagnostic) {
@@ -184,12 +184,13 @@ int main(int argc, char *argv[])
         std::fprintf(stderr, "[WINDRA-QML] loading Windra.Shell/Main\n");
         std::fflush(stderr);
         engine.loadFromModule(QStringLiteral("Windra.Shell"), QStringLiteral("Main"));
-        std::fprintf(stderr, "[WINDRA-QML] loadFromModule returned, rootObjects=%d\n",
-                     engine.rootObjects().size());
+
+        const auto roots = engine.rootObjects();
+        std::fprintf(stderr, "[WINDRA-QML] loadFromModule returned, rootObjects=%lld\n",
+                     static_cast<long long>(roots.size()));
         std::fflush(stderr);
 
         QQuickWindow *mainWindow = nullptr;
-        const auto roots = engine.rootObjects();
         for (QObject *object : roots) {
             if (auto *candidate = qobject_cast<QQuickWindow *>(object)) {
                 mainWindow = candidate;
@@ -198,65 +199,58 @@ int main(int argc, char *argv[])
         }
 
         if (!mainWindow) {
-            std::fprintf(stderr, "[WINDRA-QML] ERROR: no QQuickWindow root found\n");
+            std::fprintf(stderr, "[WINDRA-QML] no QQuickWindow root object found\n");
             std::fflush(stderr);
-            return -2;
+            QCoreApplication::exit(2);
+            return app.exec();
         }
 
         std::fprintf(stderr,
-                     "[WINDRA-QML] window found: visible=%d exposed=%d width=%d height=%d visibility=%d\n",
+                     "[WINDRA-QML] window initial: visible=%d active=%d minimized=%d exposed=%d size=%dx%d\n",
                      mainWindow->isVisible() ? 1 : 0,
+                     mainWindow->isActive() ? 1 : 0,
+                     mainWindow->visibility() == QWindow::Minimized ? 1 : 0,
                      mainWindow->isExposed() ? 1 : 0,
                      mainWindow->width(),
-                     mainWindow->height(),
-                     static_cast<int>(mainWindow->visibility()));
+                     mainWindow->height());
         std::fflush(stderr);
 
-        mainWindow->show();
-        mainWindow->raise();
-        mainWindow->requestActivate();
-
-        QObject::connect(mainWindow, &QQuickWindow::visibleChanged, &app,
-                         [mainWindow] {
-                             std::fprintf(stderr, "[WINDRA-QML] visibleChanged=%d\n",
-                                          mainWindow->isVisible() ? 1 : 0);
-                             std::fflush(stderr);
-                         });
-        QObject::connect(mainWindow, &QQuickWindow::exposedChanged, &app,
-                         [mainWindow] {
-                             std::fprintf(stderr, "[WINDRA-QML] exposedChanged=%d\n",
-                                          mainWindow->isExposed() ? 1 : 0);
-                             std::fflush(stderr);
-                         });
-
-        QTimer::singleShot(1500, &app, [mainWindow, &app] {
+        QTimer::singleShot(1500, &app, [mainWindow] {
             std::fprintf(stderr,
-                         "[WINDRA-QML] after 1.5s: visible=%d exposed=%d active=%d minimized=%d width=%d height=%d\n",
+                         "[WINDRA-QML] after 1.5s: visible=%d active=%d minimized=%d exposed=%d size=%dx%d\n",
                          mainWindow->isVisible() ? 1 : 0,
-                         mainWindow->isExposed() ? 1 : 0,
                          mainWindow->isActive() ? 1 : 0,
                          mainWindow->visibility() == QWindow::Minimized ? 1 : 0,
+                         mainWindow->isExposed() ? 1 : 0,
                          mainWindow->width(),
                          mainWindow->height());
             std::fflush(stderr);
 
             const QImage image = mainWindow->grabWindow();
-            const QString output = QStringLiteral("/tmp/windra-main-diagnostic.png");
             if (image.isNull()) {
-                std::fprintf(stderr, "[WINDRA-QML] grabWindow FAILED\n");
+                std::fprintf(stderr, "[WINDRA-QML] grabWindow FAILED (null image)\n");
                 std::fflush(stderr);
-            } else if (!image.save(output)) {
+                QCoreApplication::exit(3);
+                return;
+            }
+
+            const QString output = QStringLiteral("/tmp/windra-main-diagnostic.png");
+            if (!image.save(output)) {
                 std::fprintf(stderr, "[WINDRA-QML] grabWindow OK but save FAILED: %s\n",
                              output.toLocal8Bit().constData());
                 std::fflush(stderr);
-            } else {
-                std::fprintf(stderr, "[WINDRA-QML] grabWindow OK: %dx%d -> %s\n",
-                             image.width(), image.height(), output.toLocal8Bit().constData());
-                std::fflush(stderr);
+                QCoreApplication::exit(4);
+                return;
             }
 
+            std::fprintf(stderr, "[WINDRA-QML] grabWindow OK: %dx%d\n",
+                         image.width(), image.height());
+            std::fprintf(stderr, "[WINDRA-QML] screenshot: %s\n",
+                         output.toLocal8Bit().constData());
+            std::fflush(stderr);
             app.quit();
         });
+
         return app.exec();
     }
 
