@@ -1,5 +1,6 @@
 #include <QCoreApplication>
 #include <QDir>
+#include <QFile>
 #include <QGuiApplication>
 #include <QImage>
 #include <QQuickItem>
@@ -27,9 +28,15 @@ QString graphicsApiName(QSGRendererInterface::GraphicsApi api)
 
 int main(int argc, char *argv[])
 {
-    const QStringList args = QCoreApplication::arguments();
-    const bool software = args.contains(QStringLiteral("--software"));
+    bool software = false;
+    for (int i = 1; i < argc; ++i) {
+        if (QString::fromLocal8Bit(argv[i]) == QStringLiteral("--software")) {
+            software = true;
+            break;
+        }
+    }
 
+    // Must be set before QGuiApplication creates the Qt graphics stack.
     if (software) {
         qputenv("QT_QUICK_BACKEND", QByteArrayLiteral("software"));
     }
@@ -44,7 +51,7 @@ int main(int argc, char *argv[])
     qInfo().noquote() << "DISPLAY:" << qEnvironmentVariable("DISPLAY");
     qInfo().noquote() << "WAYLAND_DISPLAY:" << qEnvironmentVariable("WAYLAND_DISPLAY");
     qInfo().noquote() << "XDG_RUNTIME_DIR:" << qEnvironmentVariable("XDG_RUNTIME_DIR");
-    qInfo().noquote() << "/dev/dxg exists:" << QDir(QStringLiteral("/dev/dxg")).exists();
+    qInfo().noquote() << "/dev/dxg exists:" << QFile::exists(QStringLiteral("/dev/dxg"));
 
     QQuickWindow window;
     window.setTitle(QStringLiteral("Windra Render Test"));
@@ -55,10 +62,11 @@ int main(int argc, char *argv[])
     probe->setHeight(360);
 
     QObject::connect(&window, &QQuickWindow::sceneGraphInitialized, &app, [&window] {
-        const auto api = window.rendererInterface()->graphicsApi();
+        const auto *renderer = window.rendererInterface();
+        const auto api = renderer ? renderer->graphicsApi() : QSGRendererInterface::Unknown;
         qInfo().noquote() << "Scene graph initialized.";
         qInfo().noquote() << "Graphics API:" << graphicsApiName(api);
-        qInfo().noquote() << "Renderer interface:" << window.rendererInterface();
+        qInfo().noquote() << "Renderer interface:" << renderer;
     });
 
     QObject::connect(&window, &QQuickWindow::sceneGraphError, &app,
@@ -68,7 +76,7 @@ int main(int argc, char *argv[])
 
     window.show();
 
-    QTimer::singleShot(1200, &app, [&window, &app] {
+    QTimer::singleShot(1500, &app, [&window, &app] {
         const QImage image = window.grabWindow();
         if (image.isNull()) {
             qCritical() << "RENDER FAIL: grabWindow() returned a null image.";
