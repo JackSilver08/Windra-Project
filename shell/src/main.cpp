@@ -213,7 +213,7 @@ int main(int argc, char *argv[])
                      mainWindow->height());
         std::fflush(stderr);
 
-        QTimer::singleShot(1500, &app, [mainWindow] {
+        QTimer::singleShot(1500, &app, [mainWindow, &app] {
             std::fprintf(stderr,
                          "[WINDRA-QML] after 1.5s: visible=%d active=%d minimized=%d exposed=%d size=%dx%d\n",
                          mainWindow->isVisible() ? 1 : 0,
