@@ -6,6 +6,8 @@
 #include <QStringList>
 #include <QQuickWindow>
 #include <QTimer>
+#include <QImage>
+#include <QFileInfo>
 
 #include <cstdio>
 
@@ -40,8 +42,6 @@ void printMark(const char *message)
 int main(int argc, char *argv[])
 {
     // Detect this mode without touching QCoreApplication::arguments().
-    // This allows the service-only diagnostic to run without constructing QGuiApplication,
-    // which may initialize the WSL graphics stack before we can print a marker.
     const bool diagnostic = hasArgument(argc, argv, "--startup-diagnostic");
 
     if (diagnostic) {
@@ -188,10 +188,73 @@ int main(int argc, char *argv[])
                      engine.rootObjects().size());
         std::fflush(stderr);
 
-        QTimer::singleShot(2000, &app, [&app, &engine] {
-            std::fprintf(stderr, "[WINDRA-QML] timer fired, rootObjects=%d\n",
-                         engine.rootObjects().size());
+        QQuickWindow *mainWindow = nullptr;
+        const auto roots = engine.rootObjects();
+        for (QObject *object : roots) {
+            if (auto *candidate = qobject_cast<QQuickWindow *>(object)) {
+                mainWindow = candidate;
+                break;
+            }
+        }
+
+        if (!mainWindow) {
+            std::fprintf(stderr, "[WINDRA-QML] ERROR: no QQuickWindow root found\n");
             std::fflush(stderr);
+            return -2;
+        }
+
+        std::fprintf(stderr,
+                     "[WINDRA-QML] window found: visible=%d exposed=%d width=%d height=%d visibility=%d\n",
+                     mainWindow->isVisible() ? 1 : 0,
+                     mainWindow->isExposed() ? 1 : 0,
+                     mainWindow->width(),
+                     mainWindow->height(),
+                     static_cast<int>(mainWindow->visibility()));
+        std::fflush(stderr);
+
+        mainWindow->show();
+        mainWindow->raise();
+        mainWindow->requestActivate();
+
+        QObject::connect(mainWindow, &QQuickWindow::visibleChanged, &app,
+                         [mainWindow] {
+                             std::fprintf(stderr, "[WINDRA-QML] visibleChanged=%d\n",
+                                          mainWindow->isVisible() ? 1 : 0);
+                             std::fflush(stderr);
+                         });
+        QObject::connect(mainWindow, &QQuickWindow::exposedChanged, &app,
+                         [mainWindow] {
+                             std::fprintf(stderr, "[WINDRA-QML] exposedChanged=%d\n",
+                                          mainWindow->isExposed() ? 1 : 0);
+                             std::fflush(stderr);
+                         });
+
+        QTimer::singleShot(1500, &app, [mainWindow, &app] {
+            std::fprintf(stderr,
+                         "[WINDRA-QML] after 1.5s: visible=%d exposed=%d active=%d minimized=%d width=%d height=%d\n",
+                         mainWindow->isVisible() ? 1 : 0,
+                         mainWindow->isExposed() ? 1 : 0,
+                         mainWindow->isActive() ? 1 : 0,
+                         mainWindow->visibility() == QWindow::Minimized ? 1 : 0,
+                         mainWindow->width(),
+                         mainWindow->height());
+            std::fflush(stderr);
+
+            const QImage image = mainWindow->grabWindow();
+            const QString output = QStringLiteral("/tmp/windra-main-diagnostic.png");
+            if (image.isNull()) {
+                std::fprintf(stderr, "[WINDRA-QML] grabWindow FAILED\n");
+                std::fflush(stderr);
+            } else if (!image.save(output)) {
+                std::fprintf(stderr, "[WINDRA-QML] grabWindow OK but save FAILED: %s\n",
+                             output.toLocal8Bit().constData());
+                std::fflush(stderr);
+            } else {
+                std::fprintf(stderr, "[WINDRA-QML] grabWindow OK: %dx%d -> %s\n",
+                             image.width(), image.height(), output.toLocal8Bit().constData());
+                std::fflush(stderr);
+            }
+
             app.quit();
         });
         return app.exec();
