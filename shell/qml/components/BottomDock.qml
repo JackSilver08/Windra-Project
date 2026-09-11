@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Controls
 import "../design/Theme.js" as Theme
 import "../design/Geometric.js" as Geo
-import "../controls"
 
 Item {
     id: root
@@ -52,72 +51,44 @@ Item {
         }
     }
 
-    // The dock is one strong geometric strip, not a row of rounded cards.
+    // One flat, pale geometric strip with a single dramatic diagonal end.
     WindraCutSurface {
         anchors.fill: parent
-        cut: 22
+        cut: 24
         cutTopRight: true
         cutBottomLeft: false
-        fillColor: "#dbe4ece8"
-        borderColor: "#a7b4bf"
+        cutBottomRight: false
+        fillColor: "#dce6eee9"
+        borderColor: "#a9b7c3"
         borderWidth: 1
-        shadowColor: "#50000000"
+        shadowColor: "#4d000000"
         shadowOffsetX: 7
         shadowOffsetY: 7
     }
 
-    // Brand mark / launcher.
-    WindraCutSurface {
-        id: windraSurface
-        width: 44
-        height: 44
+    AppTile {
+        id: windra
+        label: "Windra Hub"
+        iconSource: "../assets/icons/windra-mark.svg"
+        width: 48
+        height: 48
         anchors.left: parent.left
-        anchors.leftMargin: 14
+        anchors.leftMargin: 12
         anchors.verticalCenter: parent.verticalCenter
-        cut: 12
-        cutTopRight: false
-        cutBottomLeft: false
-        fillColor: "#1f80ff"
-        borderColor: "#ffffff55"
-        borderWidth: 1
-        shadowColor: "#30000000"
-        shadowOffsetX: 3
-        shadowOffsetY: 3
-
-        Image {
-            anchors.centerIn: parent
-            width: 31
-            height: 31
-            source: "../assets/icons/windra-mark.svg"
-            fillMode: Image.PreserveAspectFit
-            smooth: true
-        }
-
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: root.launcherRequested()
-        }
-
-        scale: windraMousePlaceholder.containsMouse ? 1.03 : 1.0
-    }
-
-    // Invisible hover proxy keeps the launcher tile responsive without adding a rounded background.
-    MouseArea {
-        id: windraMousePlaceholder
-        anchors.fill: windraSurface
-        hoverEnabled: true
-        cursorShape: Qt.PointingHandCursor
+        reduceMotion: root.reduceMotion
+        introDelay: 55
+        bare: true
+        accentTile: true
+        tileColor: Geo.sapphire
         onClicked: root.launcherRequested()
     }
 
     SearchBox {
         id: search
-        width: Math.min(270, root.width * 0.39)
+        width: Math.min(278, root.width * 0.39)
         height: 42
-        anchors.left: windraSurface.right
-        anchors.leftMargin: 16
+        anchors.left: windra.right
+        anchors.leftMargin: 14
         anchors.verticalCenter: parent.verticalCenter
         reduceMotion: root.reduceMotion
         introDelay: 80
@@ -125,20 +96,19 @@ Item {
         onFocused: root.launcherRequested()
     }
 
-    // Minimal application shortcuts, matching the approved desktop mockup.
     AppTile {
         id: files
         label: "Files"
         iconSource: "../assets/icons/folder.svg"
-        width: 48
+        width: 46
         height: 48
         anchors.left: search.right
         anchors.leftMargin: 12
         anchors.verticalCenter: parent.verticalCenter
         reduceMotion: root.reduceMotion
-        introDelay: 120
+        introDelay: 115
+        bare: true
         running: root.isRunning("files")
-        tileColor: "transparent"
         onClicked: root.appRequested("files")
     }
 
@@ -146,22 +116,15 @@ Item {
         id: web
         label: "Web"
         iconSource: "../assets/icons/web.svg"
-        width: 48
+        width: 46
         height: 48
         anchors.left: files.right
-        anchors.leftMargin: 4
+        anchors.leftMargin: 2
         anchors.verticalCenter: parent.verticalCenter
         reduceMotion: root.reduceMotion
-        introDelay: 150
+        introDelay: 145
+        bare: true
         running: root.isRunning("web")
-        tileColor: "transparent"
         onClicked: root.appRequested("web")
-    }
-
-    // Keep the launcher accessible from keyboard even though the dock stays visually clean.
-    Rectangle {
-        visible: false
-        anchors.fill: parent
-        color: "transparent"
     }
 }
