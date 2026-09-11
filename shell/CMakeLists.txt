@@ -43,7 +43,6 @@ qt_add_qml_module(windra-shell
         qml/design/Format.js
         qml/design/Geometric.js
         qml/controls/WindraPopup.qml
-        qml/controls/WindraCutSurface.qml
         qml/controls/WindraIconButton.qml
         qml/controls/WindraButton.qml
         qml/controls/WindraSlider.qml
@@ -57,6 +56,7 @@ qt_add_qml_module(windra-shell
         qml/controls/WifiIcon.qml
         qml/controls/SignalBars.qml
         qml/controls/LockIcon.qml
+        qml/components/WindraCutSurface.qml
         qml/components/AppTile.qml
         qml/components/BottomDock.qml
         qml/components/ClockPill.qml
