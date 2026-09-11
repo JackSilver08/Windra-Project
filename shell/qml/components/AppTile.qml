@@ -14,9 +14,10 @@ Item {
     property bool running: false
     property bool orb: false
     property bool accentTile: false
+    property bool bare: false
     signal clicked()
 
-    width: 42
+    width: root.bare ? 42 : 42
     height: 48
     opacity: 0
     scale: reduceMotion ? 1.0 : 0.97
@@ -34,35 +35,48 @@ Item {
         }
     }
 
-    WindraCutSurface {
-        id: tile
-        width: 38
-        height: 38
+    Item {
+        id: visual
+        width: root.bare ? 38 : 38
+        height: root.bare ? 38 : 38
         anchors.top: parent.top
         anchors.horizontalCenter: parent.horizontalCenter
-        cut: 9
-        fillColor: mouse.containsMouse
-            ? (root.accentTile ? "#2f91ff" : "#f8fbff")
-            : (root.accentTile ? root.tileColor : "#d9e1e8")
-        borderColor: mouse.containsMouse ? "#ffffff80" : "#aebbc7"
-        borderWidth: 1
-        shadowColor: "#30000000"
-        shadowOffsetX: 3
-        shadowOffsetY: 3
-        scale: mouse.pressed ? Geo.pressScale : (mouse.containsMouse ? Geo.hoverScale : 1.0)
 
-        Behavior on fillColor { ColorAnimation { duration: Geo.motionFast } }
-        Behavior on scale { NumberAnimation { duration: Geo.motionFast; easing.type: Easing.OutCubic } }
+        WindraCutSurface {
+            anchors.fill: parent
+            visible: !root.bare
+            cut: 9
+            fillColor: mouse.containsMouse
+                ? (root.accentTile ? "#2f91ff" : "#f8fbff")
+                : (root.accentTile ? root.tileColor : "#d9e1e8")
+            borderColor: mouse.containsMouse ? "#ffffff80" : "#aebbc7"
+            borderWidth: root.bare ? 0 : 1
+            shadowColor: root.bare ? "transparent" : "#30000000"
+            shadowOffsetX: 3
+            shadowOffsetY: 3
+        }
+
+        Rectangle {
+            visible: root.bare && root.accentTile
+            anchors.fill: parent
+            radius: width / 2
+            color: mouse.containsMouse ? "#4295ff" : root.tileColor
+            border.width: 1
+            border.color: "#ffffff55"
+        }
 
         Image {
             anchors.centerIn: parent
-            width: 28
-            height: 28
+            width: root.bare ? 34 : 28
+            height: root.bare ? 34 : 28
             source: root.iconSource
             fillMode: Image.PreserveAspectFit
             smooth: true
-            opacity: root.accentTile ? 1.0 : 0.92
+            opacity: root.accentTile ? 1.0 : 0.95
         }
+
+        scale: mouse.pressed ? Geo.pressScale : (mouse.containsMouse ? Geo.hoverScale : 1.0)
+        Behavior on scale { NumberAnimation { duration: Geo.motionFast; easing.type: Easing.OutCubic } }
     }
 
     Rectangle {
@@ -70,7 +84,7 @@ Item {
         width: 9
         height: 3
         color: Geo.sapphire
-        anchors.horizontalCenter: tile.horizontalCenter
+        anchors.horizontalCenter: visual.horizontalCenter
         anchors.bottom: parent.bottom
         rotation: -12
     }
