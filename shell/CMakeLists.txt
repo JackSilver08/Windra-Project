@@ -42,6 +42,7 @@ qt_add_qml_module(windra-shell
         qml/design/Theme.js
         qml/design/Format.js
         qml/controls/WindraPopup.qml
+        qml/controls/WindraCutSurface.qml
         qml/controls/WindraIconButton.qml
         qml/controls/WindraButton.qml
         qml/controls/WindraSlider.qml
