@@ -4,6 +4,8 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QStringList>
+#include <QQuickWindow>
+#include <QTimer>
 
 #include <cstdio>
 
@@ -38,7 +40,7 @@ void printMark(const char *message)
 int main(int argc, char *argv[])
 {
     // Detect this mode without touching QCoreApplication::arguments().
-    // This allows the diagnostic path to run without constructing QGuiApplication,
+    // This allows the service-only diagnostic to run without constructing QGuiApplication,
     // which may initialize the WSL graphics stack before we can print a marker.
     const bool diagnostic = hasArgument(argc, argv, "--startup-diagnostic");
 
@@ -88,9 +90,44 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
     const QStringList args = QCoreApplication::arguments();
     const bool windowed = args.contains(QStringLiteral("--windowed"));
+    const bool guiDiagnostic = args.contains(QStringLiteral("--gui-diagnostic"));
+    const bool qmlDiagnostic = args.contains(QStringLiteral("--qml-diagnostic"));
 
     QGuiApplication::setApplicationName(QStringLiteral("Windra Shell"));
     QGuiApplication::setOrganizationName(QStringLiteral("Windra"));
+
+    if (guiDiagnostic) {
+        std::fprintf(stderr, "[WINDRA-GUI] QGuiApplication constructed\n");
+        std::fflush(stderr);
+
+        QQuickWindow window;
+        window.setTitle(QStringLiteral("Windra GUI Diagnostic"));
+        window.resize(640, 360);
+
+        QObject::connect(&window, &QQuickWindow::sceneGraphInitialized, &app, [&window] {
+            const auto api = window.rendererInterface()->graphicsApi();
+            std::fprintf(stderr, "[WINDRA-GUI] Scene graph initialized, API=%d\n",
+                         static_cast<int>(api));
+            std::fflush(stderr);
+        });
+
+        QObject::connect(&window, &QQuickWindow::sceneGraphError, &app,
+                         [](QQuickWindow::SceneGraphError error, const QString &message) {
+                             std::fprintf(stderr, "[WINDRA-GUI] Scene graph ERROR=%d: %s\n",
+                                          static_cast<int>(error),
+                                          message.toLocal8Bit().constData());
+                             std::fflush(stderr);
+                         });
+
+        window.show();
+        QTimer::singleShot(1500, &app, [&app] {
+            std::fprintf(stderr, "[WINDRA-GUI] timer fired, GUI initialization survived\n");
+            std::fflush(stderr);
+            app.quit();
+        });
+
+        return app.exec();
+    }
 
     WindraSettings settings;
     ApplicationModel applications(windowed);
@@ -125,10 +162,40 @@ int main(int argc, char *argv[])
     context->setContextProperty(QStringLiteral("windraLocaleName"), QLocale::system().name());
 
     QObject::connect(&engine,
+                     &QQmlApplicationEngine::warnings,
+                     &app,
+                     [](const QList<QQmlError> &warnings) {
+                         for (const QQmlError &error : warnings) {
+                             std::fprintf(stderr, "[WINDRA-QML] %s\n",
+                                          error.toString().toLocal8Bit().constData());
+                         }
+                         std::fflush(stderr);
+                     });
+
+    QObject::connect(&engine,
                      &QQmlApplicationEngine::objectCreationFailed,
                      &app,
                      [] { QCoreApplication::exit(-1); },
                      Qt::QueuedConnection);
+
+    if (qmlDiagnostic) {
+        std::fprintf(stderr, "[WINDRA-QML] QGuiApplication and services initialized\n");
+        std::fflush(stderr);
+        std::fprintf(stderr, "[WINDRA-QML] loading Windra.Shell/Main\n");
+        std::fflush(stderr);
+        engine.loadFromModule(QStringLiteral("Windra.Shell"), QStringLiteral("Main"));
+        std::fprintf(stderr, "[WINDRA-QML] loadFromModule returned, rootObjects=%d\n",
+                     engine.rootObjects().size());
+        std::fflush(stderr);
+
+        QTimer::singleShot(2000, &app, [&app, &engine] {
+            std::fprintf(stderr, "[WINDRA-QML] timer fired, rootObjects=%d\n",
+                         engine.rootObjects().size());
+            std::fflush(stderr);
+            app.quit();
+        });
+        return app.exec();
+    }
 
     engine.loadFromModule(QStringLiteral("Windra.Shell"), QStringLiteral("Main"));
     return app.exec();
