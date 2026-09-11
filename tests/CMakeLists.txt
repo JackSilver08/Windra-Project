@@ -1,4 +1,4 @@
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Test)
+find_package(Qt6 6.5 REQUIRED COMPONENTS Core Test Quick Qml Gui)
 
 function(windra_add_qt_test target)
     add_executable(${target} ${ARGN})
@@ -21,3 +21,5 @@ windra_add_qt_test(windra-test-wifi-model
     ${PROJECT_SOURCE_DIR}/shell/src/WifiNetworkModel.h
     ${PROJECT_SOURCE_DIR}/shell/src/NetworkBackend.h
 )
+
+add_subdirectory(render)
