@@ -10,11 +10,10 @@ Window {
     height: windraDevWindowed ? 720 : Screen.height
     visible: true
     visibility: windraDevWindowed ? Window.Windowed : Window.FullScreen
-    title: "Windra Shell · 0.2 Desktop Alpha"
+    title: "Windra Shell · 0.3 Geometric UI"
     color: "#10181b"
 
     readonly property bool reduceMotion: windraSettings.effectiveReduceMotion
-    readonly property int edgeGap: Math.max(16, Math.round(Math.min(width, height) * 0.026))
 
     function launch(appId) {
         popupController.close()
@@ -29,22 +28,23 @@ Window {
         cache: true
     }
 
-    // A tiny dark veil stabilizes contrast without changing the wallpaper mood.
-    Rectangle { anchors.fill: parent; color: "#071014"; opacity: 0.02 }
+    // Keep the wallpaper vivid. Windra's identity comes from geometry, not a heavy overlay.
+    Rectangle { anchors.fill: parent; color: "#071014"; opacity: 0.015 }
 
     StatusIsland {
         id: statusIsland
         z: 10
         anchors.top: parent.top
         anchors.right: parent.right
-        anchors.topMargin: root.edgeGap
-        anchors.rightMargin: root.edgeGap
-        width: 186
-        height: 46
+        anchors.topMargin: 0
+        anchors.rightMargin: 0
+        width: Math.min(390, Math.max(330, parent.width * 0.24))
+        height: 64
         reduceMotion: root.reduceMotion
         onWifiClicked: popupController.toggle("wifi")
         onVolumeClicked: popupController.toggle("volume")
         onBatteryClicked: popupController.toggle("battery")
+        onClockClicked: popupController.toggle("calendar")
     }
 
     BottomDock {
@@ -52,10 +52,10 @@ Window {
         z: 10
         anchors.left: parent.left
         anchors.bottom: parent.bottom
-        anchors.leftMargin: root.edgeGap
-        anchors.bottomMargin: root.edgeGap
-        width: Math.min(558, Math.max(522, parent.width * 0.42))
-        height: 58
+        anchors.leftMargin: 0
+        anchors.bottomMargin: 0
+        width: Math.min(720, Math.max(620, parent.width * 0.47))
+        height: 64
         reduceMotion: root.reduceMotion
         onPowerRequested: popupController.toggle("power")
         onLauncherRequested: {
@@ -70,21 +70,18 @@ Window {
         }
     }
 
+    // The approved desktop reference keeps the lower-right corner visually clean.
+    // Clock access now lives inside the upper-right status strip.
     ClockPill {
-        id: clock
-        z: 10
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.rightMargin: root.edgeGap
-        anchors.bottomMargin: root.edgeGap
+        id: legacyClock
+        visible: false
+        enabled: false
         width: 196
         height: 58
-        reduceMotion: root.reduceMotion
         onAppsClicked: popupController.toggle("apps")
         onClockClicked: popupController.toggle("calendar")
     }
 
-    // One backdrop closes whichever popup is currently open.
     MouseArea {
         z: 20
         anchors.fill: parent
@@ -124,8 +121,8 @@ Window {
         z: 30
         open: popupController.active === "calendar"
         reduceMotion: root.reduceMotion
-        anchorItem: clock.clockAnchor
-        preferredSide: "above"
+        anchorItem: statusIsland.clockAnchor
+        preferredSide: "below"
     }
 
     RunningAppsPopup {
@@ -133,15 +130,15 @@ Window {
         z: 30
         open: popupController.active === "apps"
         reduceMotion: root.reduceMotion
-        anchorItem: clock.appsAnchor
-        preferredSide: "above"
+        anchorItem: statusIsland.batteryAnchor
+        preferredSide: "below"
     }
 
     LauncherPanel {
         id: launcher
         z: 30
         anchors.left: parent.left
-        anchors.leftMargin: root.edgeGap
+        anchors.leftMargin: 18
         anchors.bottom: dock.top
         anchors.bottomMargin: 10
         open: popupController.active === "launcher"
@@ -158,7 +155,7 @@ Window {
         id: powerMenu
         z: 30
         anchors.left: parent.left
-        anchors.leftMargin: root.edgeGap
+        anchors.leftMargin: 18
         anchors.bottom: dock.top
         anchors.bottomMargin: 10
         open: popupController.active === "power"
@@ -175,7 +172,7 @@ Window {
         z: 40
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 92
+        anchors.bottomMargin: 84
         reduceMotion: root.reduceMotion
     }
 
@@ -192,7 +189,6 @@ Window {
     Component.onCompleted: Qt.callLater(function() {
         statusIsland.playIntro()
         dock.playIntro()
-        clock.playIntro()
     })
 
     Shortcut { sequence: "Esc"; onActivated: popupController.close() }

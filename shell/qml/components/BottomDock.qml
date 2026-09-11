@@ -1,11 +1,12 @@
 import QtQuick
 import QtQuick.Controls
 import "../design/Theme.js" as Theme
+import "../design/Geometric.js" as Geo
 
 Item {
     id: root
+
     property bool reduceMotion: false
-    //! Change whenever ApplicationModel changes so isRunning() is reevaluated.
     property int runningRevision: 0
     signal powerRequested()
     signal launcherRequested()
@@ -13,7 +14,7 @@ Item {
     signal searchSubmitted(string query)
 
     opacity: 0
-    transform: Translate { id: dockTranslate; x: root.reduceMotion ? 0 : -48 }
+    transform: Translate { id: dockTranslate; x: root.reduceMotion ? 0 : -42 }
 
     function isRunning(id) {
         return root.runningRevision >= 0 && appModel.isRunning(id)
@@ -27,94 +28,103 @@ Item {
     function playIntro() {
         dockIntro.start()
         search.playIntro()
-        windra.playIntro(); web.playIntro(); files.playIntro(); notes.playIntro(); calc.playIntro(); apps.playIntro()
+        windra.playIntro()
+        files.playIntro()
+        web.playIntro()
     }
 
     ParallelAnimation {
         id: dockIntro
-        NumberAnimation { target: root; property: "opacity"; to: 1; duration: root.reduceMotion ? 80 : Theme.motionSlow; easing.type: Easing.OutCubic }
-        NumberAnimation { target: dockTranslate; property: "x"; to: 0; duration: root.reduceMotion ? 80 : Theme.motionSlow; easing.type: Easing.OutCubic }
+        NumberAnimation {
+            target: root
+            property: "opacity"
+            to: 1
+            duration: root.reduceMotion ? 80 : Theme.motionSlow
+            easing.type: Easing.OutCubic
+        }
+        NumberAnimation {
+            target: dockTranslate
+            property: "x"
+            to: 0
+            duration: root.reduceMotion ? 80 : Theme.motionSlow
+            easing.type: Easing.OutCubic
+        }
     }
 
-    Rectangle {
+    // One flat, pale geometric strip with a single dramatic diagonal end.
+    WindraCutSurface {
         anchors.fill: parent
-        radius: 18
-        color: Theme.chromeGlass
-        border.width: 1
-        border.color: Theme.chromeBorder
+        cut: 24
+        cutTopRight: true
+        cutBottomLeft: false
+        cutBottomRight: false
+        fillColor: "#dce6eee9"
+        borderColor: "#a9b7c3"
+        borderWidth: 1
+        shadowColor: "#4d000000"
+        shadowOffsetX: 7
+        shadowOffsetY: 7
     }
 
-    Row {
+    AppTile {
+        id: windra
+        label: "Windra Hub"
+        iconSource: "../assets/icons/windra-mark.svg"
+        width: 48
+        height: 48
         anchors.left: parent.left
-        anchors.leftMargin: 10
+        anchors.leftMargin: 12
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 8
+        reduceMotion: root.reduceMotion
+        introDelay: 55
+        bare: true
+        accentTile: true
+        tileColor: Geo.sapphire
+        onClicked: root.launcherRequested()
+    }
 
-        AppTile {
-            id: windra
-            label: "Windra"
-            iconSource: "../assets/icons/windra-mark.svg"
-            orb: true
-            reduceMotion: root.reduceMotion
-            introDelay: 70
-            onClicked: root.powerRequested()
-        }
+    SearchBox {
+        id: search
+        width: Math.min(278, root.width * 0.39)
+        height: 42
+        anchors.left: windra.right
+        anchors.leftMargin: 14
+        anchors.verticalCenter: parent.verticalCenter
+        reduceMotion: root.reduceMotion
+        introDelay: 80
+        onSubmitted: query => root.searchSubmitted(query)
+        onFocused: root.launcherRequested()
+    }
 
-        SearchBox {
-            id: search
-            width: Math.max(180, Math.min(210, root.width * 0.39))
-            height: 38
-            anchors.verticalCenter: parent.verticalCenter
-            reduceMotion: root.reduceMotion
-            introDelay: 100
-            onSubmitted: query => root.searchSubmitted(query)
-            onFocused: root.launcherRequested()
-        }
+    AppTile {
+        id: files
+        label: "Files"
+        iconSource: "../assets/icons/folder.svg"
+        width: 46
+        height: 48
+        anchors.left: search.right
+        anchors.leftMargin: 12
+        anchors.verticalCenter: parent.verticalCenter
+        reduceMotion: root.reduceMotion
+        introDelay: 115
+        bare: true
+        running: root.isRunning("files")
+        onClicked: root.appRequested("files")
+    }
 
-        AppTile {
-            id: web
-            label: "Web"
-            iconSource: "../assets/icons/web.svg"
-            reduceMotion: root.reduceMotion
-            introDelay: 135
-            running: root.isRunning("web")
-            onClicked: root.appRequested("web")
-        }
-        AppTile {
-            id: files
-            label: "Files"
-            iconSource: "../assets/icons/folder.svg"
-            reduceMotion: root.reduceMotion
-            introDelay: 135 + Theme.stagger
-            running: root.isRunning("files")
-            onClicked: root.appRequested("files")
-        }
-        AppTile {
-            id: notes
-            label: "Notes"
-            iconSource: "../assets/icons/notes.svg"
-            reduceMotion: root.reduceMotion
-            introDelay: 135 + Theme.stagger * 2
-            running: root.isRunning("notes")
-            onClicked: root.appRequested("notes")
-        }
-        AppTile {
-            id: calc
-            label: "Calc"
-            iconSource: "../assets/icons/calc.svg"
-            reduceMotion: root.reduceMotion
-            introDelay: 135 + Theme.stagger * 3
-            running: root.isRunning("calc")
-            onClicked: root.appRequested("calc")
-        }
-        AppTile {
-            id: apps
-            label: "Ứng dụng"
-            iconSource: "../assets/icons/apps.svg"
-            orb: true
-            reduceMotion: root.reduceMotion
-            introDelay: 135 + Theme.stagger * 4
-            onClicked: root.launcherRequested()
-        }
+    AppTile {
+        id: web
+        label: "Web"
+        iconSource: "../assets/icons/web.svg"
+        width: 46
+        height: 48
+        anchors.left: files.right
+        anchors.leftMargin: 2
+        anchors.verticalCenter: parent.verticalCenter
+        reduceMotion: root.reduceMotion
+        introDelay: 145
+        bare: true
+        running: root.isRunning("web")
+        onClicked: root.appRequested("web")
     }
 }

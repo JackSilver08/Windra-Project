@@ -1,14 +1,5 @@
 import QtQuick
 
-/*!
- * Windra's primary geometric surface.
- *
- * A lightweight Canvas-based background that gives controls a consistent
- * diagonal-cut silhouette without shaders or expensive blur.
- *
- * The Item itself remains a normal QML container, so children can be placed
- * inside it using anchors just like a Rectangle.
- */
 Item {
     id: root
 
@@ -17,8 +8,10 @@ Item {
     property color shadowColor: "transparent"
     property real borderWidth: 0
     property int cut: 14
+    property bool cutTopLeft: false
     property bool cutTopRight: true
     property bool cutBottomLeft: true
+    property bool cutBottomRight: false
     property real shadowOffsetX: 0
     property real shadowOffsetY: 0
 
@@ -27,7 +20,6 @@ Item {
         anchors.fill: parent
         visible: root.shadowColor.a > 0 && (root.shadowOffsetX !== 0 || root.shadowOffsetY !== 0)
         antialiasing: true
-
         onPaint: {
             const ctx = getContext("2d")
             ctx.reset()
@@ -41,7 +33,6 @@ Item {
         id: surfaceCanvas
         anchors.fill: parent
         antialiasing: true
-
         onPaint: {
             const ctx = getContext("2d")
             ctx.reset()
@@ -54,13 +45,20 @@ Item {
         const c = Math.max(0, Math.min(root.cut, Math.min(width, height) / 2))
 
         ctx.beginPath()
-        ctx.moveTo(0, 0)
+        ctx.moveTo(root.cutTopLeft ? c : 0, 0)
         ctx.lineTo(root.cutTopRight ? width - c : width, 0)
         ctx.lineTo(width, root.cutTopRight ? c : 0)
-        ctx.lineTo(width, height)
+        ctx.lineTo(width, root.cutBottomRight ? height - c : height)
+        ctx.lineTo(root.cutBottomRight ? width - c : width, height)
         ctx.lineTo(root.cutBottomLeft ? c : 0, height)
         ctx.lineTo(0, root.cutBottomLeft ? height - c : height)
+        ctx.lineTo(0, root.cutTopLeft ? c : 0)
         ctx.closePath()
+
+        if (root.cutTopLeft) {
+            ctx.moveTo(c, 0)
+            ctx.lineTo(0, c)
+        }
 
         ctx.fillStyle = fill
         ctx.fill()
@@ -72,30 +70,17 @@ Item {
         }
     }
 
-    onWidthChanged: {
-        shadowCanvas.requestPaint()
-        surfaceCanvas.requestPaint()
-    }
-    onHeightChanged: {
-        shadowCanvas.requestPaint()
-        surfaceCanvas.requestPaint()
-    }
+    onWidthChanged: { shadowCanvas.requestPaint(); surfaceCanvas.requestPaint() }
+    onHeightChanged: { shadowCanvas.requestPaint(); surfaceCanvas.requestPaint() }
     onFillColorChanged: surfaceCanvas.requestPaint()
     onBorderColorChanged: surfaceCanvas.requestPaint()
     onShadowColorChanged: shadowCanvas.requestPaint()
     onBorderWidthChanged: surfaceCanvas.requestPaint()
-    onCutChanged: {
-        shadowCanvas.requestPaint()
-        surfaceCanvas.requestPaint()
-    }
-    onCutTopRightChanged: {
-        shadowCanvas.requestPaint()
-        surfaceCanvas.requestPaint()
-    }
-    onCutBottomLeftChanged: {
-        shadowCanvas.requestPaint()
-        surfaceCanvas.requestPaint()
-    }
+    onCutChanged: { shadowCanvas.requestPaint(); surfaceCanvas.requestPaint() }
+    onCutTopLeftChanged: { shadowCanvas.requestPaint(); surfaceCanvas.requestPaint() }
+    onCutTopRightChanged: { shadowCanvas.requestPaint(); surfaceCanvas.requestPaint() }
+    onCutBottomLeftChanged: { shadowCanvas.requestPaint(); surfaceCanvas.requestPaint() }
+    onCutBottomRightChanged: { shadowCanvas.requestPaint(); surfaceCanvas.requestPaint() }
     onShadowOffsetXChanged: shadowCanvas.requestPaint()
     onShadowOffsetYChanged: shadowCanvas.requestPaint()
 }
